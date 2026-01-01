@@ -1,45 +1,76 @@
-# Todo In-Memory Python Console Application (Phase I)
+# Todo Full-Stack Web Application - Phase II
 
-**Version**: 1.0.0  
+**Version**: 2.0.0  
 **Python Version**: 3.12.4 (EXACT)  
-**Phase**: I - In-Memory Console Application
+**Node Version**: 18+  
+**Phase**: II - Full-Stack Web Application with Authentication
 
 ---
 
 ## Overview
 
-A command-line todo application with in-memory storage for managing tasks. This is Phase I of the 5-phase Evolution of Todo Hackathon, implementing core CRUD operations through an interactive console interface.
+A complete full-stack todo application with JWT authentication, persistent PostgreSQL storage, and modern web interface. This is Phase II of the 5-phase Evolution of Todo Hackathon, implementing multi-user authentication and database persistence.
 
-### Phase I Features
+### Phase II Features ✅
 
-✅ **Add tasks** - Create tasks with title and description  
-✅ **List tasks** - Display all tasks with sorting options  
-✅ **Update tasks** - Modify task title and description  
-✅ **Delete tasks** - Remove tasks permanently  
-✅ **Toggle completion** - Mark tasks as complete/incomplete  
-✅ **ID prefix matching** - Use any unique prefix of task ID  
-✅ **Duplicate detection** - Warns when adding duplicate titles  
-✅ **Sorting options** - 4 different ways to sort task list  
-✅ **Interactive prompts** - No command-line arguments required
+**Authentication:**
+- ✅ User signup with email/password
+- ✅ User signin with JWT token
+- ✅ Protected routes with token validation
+- ✅ Multi-user isolation
 
-### Phase I Constraints
+**Task Management:**
+- ✅ Create tasks with title and description
+- ✅ View all tasks with filtering (all/complete/incomplete)
+- ✅ Sort tasks (by date, title, status)
+- ✅ Search tasks by title/description
+- ✅ Update task title/description
+- ✅ Toggle task completion status
+- ✅ Delete tasks
 
-❌ **No persistence** - All data is lost on application exit  
-❌ **No database** - Uses in-memory dictionary storage  
-❌ **No web interface** - Console-only interaction  
-❌ **Console-only** - No GUI or mobile app
+**Technical:**
+- ✅ Persistent PostgreSQL storage (Neon)
+- ✅ RESTful API with FastAPI
+- ✅ Modern Next.js 14 frontend
+- ✅ Responsive Tailwind CSS design
+- ✅ JWT authentication
+- ✅ Password hashing with bcrypt
+
+### Phase I (Complete) ✅
+
+Phase I implemented a console-only in-memory application. See `/src` for Phase I code.
+
+---
+
+## Tech Stack
+
+### Backend
+- **Python 3.12.4** (FastAPI)
+- **SQLModel** (Database ORM)
+- **PostgreSQL** (Neon Serverless)
+- **JWT** (Authentication)
+- **bcrypt** (Password hashing)
+- **Alembic** (Database migrations)
+
+### Frontend
+- **Next.js 14** (App Router)
+- **React 18**
+- **TypeScript 5**
+- **Tailwind CSS 3**
+- **Axios** (HTTP client)
 
 ---
 
 ## Prerequisites
 
 - **Python 3.12.4** (exact version required)
+- **Node.js 18+** and npm
+- **PostgreSQL database** (Neon account recommended)
 - Terminal/Command prompt access
-- Optional: `rich` library for enhanced output
 
 ---
 
-## Installation
+## Quick Start
 
 ### 1. Clone Repository
 
@@ -48,75 +79,187 @@ git clone <repository-url>
 cd Hackathon2_CRUD_task_with_agent
 ```
 
-### 2. Verify Python Version
+### 2. Backend Setup
 
 ```bash
-python --version
-# Should output: Python 3.12.4
+cd backend
 ```
 
-If you have multiple Python versions:
-
+Create virtual environment:
 ```bash
-python3.12 --version
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Mac/Linux:
+source venv/bin/activate
 ```
 
-### 3. Install Optional Dependencies (Enhanced UI)
-
+Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-**Note**: The application works without `rich`, but it provides better table formatting and colors.
+Create `.env` file:
+```bash
+cp .env.example .env
+```
+
+Update `.env` with your database and JWT secret:
+```
+DATABASE_URL=postgresql://user:pass@host.neon.tech/dbname?sslmode=require
+JWT_AUTH=your-secret-key-here-min-32-chars-change-in-production
+```
+
+Create database tables:
+```bash
+python -c "from src.database import create_db_and_tables; create_db_and_tables()"
+```
+
+Run the backend server:
+```bash
+uvicorn src.main:app --reload --port 8000
+```
+
+Backend API will be available at `http://localhost:8000`
+
+### 3. Frontend Setup
+
+Open a new terminal window:
+
+```bash
+cd frontend
+```
+
+Install dependencies:
+```bash
+npm install
+```
+
+Create `.env.local` file:
+```bash
+cp .env.local.example .env.local
+```
+
+Verify `.env.local` content:
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Run the development server:
+```bash
+npm run dev
+```
+
+Frontend will be available at `http://localhost:3000`
 
 ---
 
-## How to Run
+## Usage
 
-### Start the Application
+### 1. Sign Up
 
-```bash
-python src/main.py
-```
+- Navigate to `http://localhost:3000/signup`
+- Enter your email address
+- Enter a password (min 8 characters)
+- Confirm your password
+- Click "Sign up"
 
-Or with specific Python version:
+### 2. Sign In
 
-```bash
-python3.12 src/main.py
-```
+- Navigate to `http://localhost:3000/signin`
+- Enter your email and password
+- Click "Sign in"
 
-### Expected Output
+### 3. Manage Tasks
 
-```
-============================================================
-Todo Application - Phase I (In-Memory Console)
-============================================================
+Once signed in, you'll be redirected to the tasks page where you can:
 
-Welcome! This is an in-memory task management application.
-All data will be lost when you exit the application.
+**Create Task:**
+- Click the "+ New Task" button
+- Enter task title (required)
+- Enter task description (optional)
+- Click "Create Task"
 
-Type 'help' for available commands, or 'exit' to quit.
-============================================================
+**View Tasks:**
+- All your tasks are displayed in a list
+- Use filters to show: All, Complete, or Incomplete tasks
+- Use sort options: Newest/Oldest First, Title A-Z/Z-A, Status
+- Use search to find tasks by title or description
 
-todo> _
-```
+**Update Task:**
+- Click the "Edit" button on any task
+- Modify the title and/or description
+- Click "Update Task"
+
+**Toggle Completion:**
+- Click the checkbox next to any task to mark it complete/incomplete
+
+**Delete Task:**
+- Click the "Delete" button on any task
+- Confirm the deletion
+
+### 4. Sign Out
+
+- Click the "Logout" button in the top right corner
 
 ---
 
-## Commands
+## API Endpoints
 
-### 1. Add Task
+### Authentication (Public)
+- `POST /api/auth/signup` - Register new user
+- `POST /api/auth/signin` - Login and get JWT token
 
-**Command**: `add`
+### Tasks (Protected - Requires JWT Token)
+- `GET /api/users/{user_id}/tasks` - List tasks with filters/sort/search
+- `POST /api/users/{user_id}/tasks` - Create task
+- `GET /api/users/{user_id}/tasks/{task_id}` - Get task details
+- `PUT /api/users/{user_id}/tasks/{task_id}` - Update task
+- `DELETE /api/users/{user_id}/tasks/{task_id}` - Delete task
+- `PATCH /api/users/{user_id}/tasks/{task_id}/complete` - Toggle completion
 
-**Description**: Add a new task with interactive prompts for title and description.
+See `specs/main/contracts/rest-api.md` for detailed API documentation.
 
-**Example**:
+---
+
+## Project Structure
+
 ```
-todo> add
-Enter task title: Buy groceries
-Enter task description (optional): Milk, bread, and eggs
-✓ Task 550e8400 added successfully
+.
+├── backend/               # FastAPI backend
+│   ├── src/
+│   │   ├── models/       # SQLModel database models (User, Task)
+│   │   ├── routes/       # API endpoints (auth, tasks)
+│   │   ├── middleware/   # JWT authentication
+│   │   ├── utils/        # Password hashing, JWT utilities
+│   │   ├── config.py     # Configuration (DATABASE_URL, JWT_AUTH)
+│   │   ├── database.py   # Database connection
+│   │   └── main.py       # FastAPI application entry point
+│   ├── requirements.txt  # Python dependencies
+│   ├── .env.example      # Environment variables template
+│   └── .gitignore        # Backend git ignore
+│
+├── frontend/             # Next.js frontend
+│   ├── src/
+│   │   ├── app/         # Next.js pages (signup, signin, tasks)
+│   │   ├── components/  # React components (TaskList, TaskForm, etc.)
+│   │   ├── context/     # Auth context provider
+│   │   ├── lib/         # API client, auth utilities
+│   │   └── types/       # TypeScript types (User, Task)
+│   ├── package.json     # Node dependencies
+│   ├── .env.local.example  # Environment variables template
+│   └── .gitignore       # Frontend git ignore
+│
+├── src/                  # Phase I console app (in-memory)
+├── specs/                # Specifications
+│   └── main/
+│       ├── spec-phase2.md
+│       ├── data-model-phase2.md
+│       ├── plan.md
+│       └── contracts/
+│           └── rest-api.md
+├── README.md             # This file
+└── requirements.txt      # Phase I dependencies (optional rich)
 ```
 
 **Features**:
@@ -562,3 +705,48 @@ See project license file for details.
 **README Version**: 1.0.0  
 **Last Updated**: 2026-01-01  
 **Status**: Phase I Complete ✅
+
+
+---
+
+## Security
+
+### Password Security
+- Passwords hashed with **bcrypt** (cost factor 12)
+- Never stored in plaintext
+- Minimum 8 characters required
+
+### JWT Authentication
+- Tokens signed with JWT_AUTH secret (min 32 chars)
+- Token expires after 24 hours
+- All protected endpoints validate token
+
+### Multi-User Isolation
+- Database queries filtered by authenticated user_id
+- Users can only access their own tasks
+- 403 Forbidden for unauthorized access
+
+---
+
+## Troubleshooting
+
+**Database Error**: Verify DATABASE_URL in backend .env
+**JWT Error**: Set JWT_AUTH in backend .env (min 32 chars)
+**API Connection**: Verify backend running on port 8000
+**Build Error**: Delete node_modules/.next and reinstall
+
+---
+
+## Phase II Status: ✅ COMPLETE
+
+**Implemented:**
+- ✅ JWT authentication with multi-user isolation
+- ✅ PostgreSQL persistence (Neon)
+- ✅ RESTful API (FastAPI)
+- ✅ Modern frontend (Next.js 14 + Tailwind CSS)
+- ✅ Full CRUD operations
+- ✅ Protected routes
+- ✅ Error handling & validation
+
+**Next: Phase III** - AI agent integration
+

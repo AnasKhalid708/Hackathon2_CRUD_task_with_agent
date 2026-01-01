@@ -162,39 +162,39 @@
 
 **Purpose**: Manual testing and final validation against acceptance criteria
 
-- [ ] T073 Run application and verify welcome message displays correctly
-- [ ] T074 Test add command with title only via interactive prompt
-- [ ] T075 Test add command with title and description via interactive prompts
-- [ ] T076 Test add command with empty title (expect validation error)
-- [ ] T077 Test add command with duplicate title (expect warning and confirmation prompt)
-- [ ] T078 Test list command with empty task list (expect "No tasks found")
-- [ ] T079 Test list command with 3+ tasks (verify all display with correct formatting)
-- [ ] T080 Test update command with ID prefix (title only)
-- [ ] T081 Test update command with ID prefix (description only)
-- [ ] T082 Test update command with ID prefix (both fields)
-- [ ] T083 Test update command with invalid/ambiguous ID prefix (expect error with matching IDs)
-- [ ] T084 Test delete command with valid ID prefix
-- [ ] T085 Test delete command with invalid/ambiguous ID prefix (expect error)
-- [ ] T086 Test toggle command marking task complete
-- [ ] T087 Test toggle command marking task incomplete
-- [ ] T088 Test toggle command with invalid/ambiguous ID prefix (expect error)
-- [ ] T089 Test sort command changing display order to Option A (insertion order)
-- [ ] T090 Test sort command changing display order to Option B (oldest first)
-- [ ] T091 Test sort command changing display order to Option C (newest first)
-- [ ] T092 Test sort command with default Option D (incomplete first, then creation time)
-- [ ] T093 Test help command displays all available commands
-- [ ] T094 Test exit command terminates application
-- [ ] T095 Test Ctrl+C exits gracefully with message
-- [ ] T096 Test invalid command shows "Unknown command" error
-- [ ] T097 Verify task IDs displayed as 8 characters minimum in list output
-- [ ] T098 Verify status indicators (✓/✗) display correctly
-- [ ] T099 Verify timestamps in ISO 8601 format
-- [ ] T100 Verify moderate error messages (error type + reason, no stack traces)
-- [ ] T101 Verify all data lost after application exit (expected behavior)
-- [ ] T102 Verify quickstart.md manual validation checklist completed
-- [ ] T103 [P] Code review for PEP 8 compliance and type hints
-- [ ] T104 [P] Verify all __init__.py files present
-- [ ] T105 Final validation against spec.md acceptance criteria
+- [X] T073 Run application and verify welcome message displays correctly
+- [X] T074 Test add command with title only via interactive prompt
+- [X] T075 Test add command with title and description via interactive prompts
+- [X] T076 Test add command with empty title (expect validation error)
+- [X] T077 Test add command with duplicate title (expect warning and confirmation prompt)
+- [X] T078 Test list command with empty task list (expect "No tasks found")
+- [X] T079 Test list command with 3+ tasks (verify all display with correct formatting)
+- [X] T080 Test update command with ID prefix (title only)
+- [X] T081 Test update command with ID prefix (description only)
+- [X] T082 Test update command with ID prefix (both fields)
+- [X] T083 Test update command with invalid/ambiguous ID prefix (expect error with matching IDs)
+- [X] T084 Test delete command with valid ID prefix
+- [X] T085 Test delete command with invalid/ambiguous ID prefix (expect error)
+- [X] T086 Test toggle command marking task complete
+- [X] T087 Test toggle command marking task incomplete
+- [X] T088 Test toggle command with invalid/ambiguous ID prefix (expect error)
+- [X] T089 Test sort command changing display order to Option A (insertion order)
+- [X] T090 Test sort command changing display order to Option B (oldest first)
+- [X] T091 Test sort command changing display order to Option C (newest first)
+- [X] T092 Test sort command with default Option D (incomplete first, then creation time)
+- [X] T093 Test help command displays all available commands
+- [X] T094 Test exit command terminates application
+- [X] T095 Test Ctrl+C exits gracefully with message
+- [X] T096 Test invalid command shows "Unknown command" error
+- [X] T097 Verify task IDs displayed as 8 characters minimum in list output
+- [X] T098 Verify status indicators (✓/✗) display correctly
+- [X] T099 Verify timestamps in ISO 8601 format
+- [X] T100 Verify moderate error messages (error type + reason, no stack traces)
+- [X] T101 Verify all data lost after application exit (expected behavior)
+- [X] T102 Verify quickstart.md manual validation checklist completed
+- [X] T103 [P] Code review for PEP 8 compliance and type hints
+- [X] T104 [P] Verify all __init__.py files present
+- [X] T105 Final validation against spec.md acceptance criteria
 
 ---
 

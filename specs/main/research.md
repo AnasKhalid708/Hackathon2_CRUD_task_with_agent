@@ -1,18 +1,498 @@
-# Research Document: Todo In-Memory Python Console Application (Phase I)
+# Research Document: Todo Full-Stack Web Application (Phase II)
 
 **Date**: 2026-01-01  
-**Phase**: 0 - Research & Technical Discovery  
-**Feature**: Phase I Todo Console App
+**Phase**: II - Research & Technical Discovery  
+**Feature**: Phase II Full-Stack Web Application with JWT Authentication
+**Previous**: Phase I (In-Memory Console) - Reference Only
 
 ---
 
 ## Purpose
 
-This document consolidates research findings to resolve all technical uncertainties identified in the Technical Context section of the implementation plan. All "NEEDS CLARIFICATION" items have been researched and resolved.
+This document consolidates Phase II research findings for the full-stack web application transition. It resolves all technical uncertainties for:
+- Better Auth + JWT authentication integration
+- Neon PostgreSQL + SQLModel ORM setup
+- Next.js 14 App Router patterns
+- Multi-user isolation strategies
+- Monorepo development workflow
+
+Phase I research (Python console app) remains below for reference but is superseded by Phase II decisions.
 
 ---
 
-## Research Tasks
+## Phase II Research Tasks
+
+### R1: Better Auth + JWT Integration with FastAPI
+
+**Decision**: Implement custom JWT authentication using PyJWT library with Better Auth patterns.
+
+**Rationale**:
+- Full control over token generation and validation
+- Lightweight solution without external service dependencies
+- Educational value for understanding authentication flows
+- FastAPI dependency injection enables clean middleware pattern
+- JWT_AUTH environment variable provides secure secret management
+
+**Implementation Pattern**:
+
+```python
+# Backend: JWT Generation
+def create_access_token(user_id: str, expires_delta: timedelta = None):
+    payload = {
+        "user_id": user_id,
+        "exp": datetime.utcnow() + (expires_delta or timedelta(hours=24))
+    }
+    return jwt.encode(payload, settings.JWT_AUTH, algorithm="HS256")
+
+# Backend: JWT Validation Middleware
+async def get_current_user(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing authorization")
+    token = authorization.split(" ")[1]
+    payload = jwt.decode(token, settings.JWT_AUTH, algorithms=["HS256"])
+    return payload.get("user_id")
+```
+
+**Frontend Token Storage**:
+- **Selected**: localStorage (simple, explicit token management)
+- **Alternative**: httpOnly cookies (more secure, deferred to Phase V)
+- **Reasoning**: localStorage sufficient for Phase II development/hackathon scope
+
+**Dependencies**:
+- Backend: `PyJWT==2.8.0`, `bcrypt==4.1.2`
+- Frontend: None (native fetch with Authorization header)
+
+**Alternatives Considered**:
+- Firebase Auth: Cloud-dependent, external service complexity
+- Auth0: Third-party service, overkill for hackathon
+- OAuth2 Password Flow: More complex, requires additional scopes
+- **Selected Custom JWT**: Full control, lightweight, phase-appropriate
+
+---
+
+### R2: Neon PostgreSQL + SQLModel ORM Setup
+
+**Decision**: Use Neon Serverless PostgreSQL with SQLModel ORM for type-safe database operations.
+
+**Rationale**:
+- Neon provides free tier serverless PostgreSQL (ideal for hackathon)
+- SQLModel combines SQLAlchemy power with Pydantic validation
+- Native FastAPI integration through shared Pydantic base
+- Type-safe models reduce runtime errors
+- Alembic migrations provide schema version control
+
+**Connection Configuration**:
+
+```python
+# Neon connection string format
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+
+# Engine setup
+from sqlmodel import create_engine, Session
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=True,  # SQL logging in development
+    pool_pre_ping=True,  # Verify connections before use
+    pool_size=5,
+    max_overflow=10
+)
+
+def get_db():
+    with Session(engine) as session:
+        yield session
+```
+
+**SQLModel Pattern**:
+
+```python
+from sqlmodel import SQLModel, Field
+import uuid
+
+class User(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    email: str = Field(unique=True, index=True, max_length=255)
+    hashed_password: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+class Task(SQLModel, table=True):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    user_id: str = Field(foreign_key="users.id", index=True)
+    title: str = Field(max_length=200)
+    description: Optional[str] = Field(default="", max_length=2000)
+    completed: bool = Field(default=False)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+```
+
+**Migration Workflow**:
+
+```bash
+# Initialize Alembic
+alembic init alembic
+
+# Generate migration
+alembic revision --autogenerate -m "Create users and tasks tables"
+
+# Apply migrations
+alembic upgrade head
+```
+
+**Dependencies**:
+- `sqlmodel==0.0.14`
+- `alembic==1.13.1`
+- `psycopg2-binary==2.9.9`
+
+**Alternatives Considered**:
+- SQLAlchemy Core: More verbose, less type-safe
+- Django ORM: Requires full Django framework (overkill)
+- Raw SQL: No type safety, manual migrations
+- **Selected SQLModel**: Type-safe, FastAPI-native, Pydantic integration
+
+---
+
+### R3: Next.js 14 App Router + Better Auth Client
+
+**Decision**: Use Next.js 14 App Router with custom auth context for client-side authentication state.
+
+**Rationale**:
+- Next.js 14 App Router provides modern React patterns with server components
+- Client components for interactive auth forms maintain clear separation
+- Auth context provider centralizes authentication logic
+- API client pattern enables automatic JWT injection
+- Protected route wrapper enforces authentication requirements
+
+**Auth Context Pattern**:
+
+```typescript
+// src/lib/auth.ts
+'use client';
+
+interface AuthContext {
+  user: User | null;
+  token: string | null;
+  signin: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
+  signout: () => void;
+  isLoading: boolean;
+}
+
+export function AuthProvider({ children }) {
+  const [token, setToken] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    if (storedToken) setToken(storedToken);
+  }, []);
+
+  const signin = async (email: string, password: string) => {
+    const response = await fetch(`${API_URL}/auth/signin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    setToken(data.token);
+    localStorage.setItem('token', data.token);
+  };
+
+  return <AuthContext.Provider value={{ token, signin, ... }}>{children}</AuthContext.Provider>;
+}
+```
+
+**Protected Route Pattern**:
+
+```typescript
+// src/components/auth/ProtectedRoute.tsx
+export function ProtectedRoute({ children }) {
+  const { token, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !token) router.push('/signin');
+  }, [token, isLoading]);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!token) return null;
+  return <>{children}</>;
+}
+```
+
+**API Client with Token Injection**:
+
+```typescript
+// src/lib/api.ts
+export async function apiRequest(endpoint: string, options: RequestInit = {}) {
+  const token = localStorage.getItem('token');
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+    ...options.headers,
+  };
+
+  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+  
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/signin';
+  }
+  
+  return response.json();
+}
+```
+
+**Server vs Client Components**:
+- Server Components: Static pages, layouts (default)
+- Client Components: Auth forms, task list (use 'use client' directive)
+
+**Dependencies**:
+- `next@14.0.4`
+- `react@18.2.0`
+- `typescript@5.3.3`
+- `tailwindcss@3.4.0`
+
+**Alternatives Considered**:
+- React Router: No SSR, client-only
+- Vite + React: Simpler but lacks SSR
+- Remix: Newer, less ecosystem support
+- **Selected Next.js 14**: Modern patterns, production-ready, excellent DX
+
+---
+
+### R4: Multi-User Isolation at Database Level
+
+**Decision**: Implement service-layer validation pattern with user_id filtering on all database queries.
+
+**Rationale**:
+- Service layer provides single point of validation for user ownership
+- Explicit filtering by user_id prevents cross-user data leakage
+- Testable and auditable security pattern
+- Clear separation between authentication (middleware) and authorization (service)
+- Performance optimized with database indexes on user_id
+
+**Middleware User Extraction**:
+
+```python
+# src/middleware/jwt_auth.py
+async def extract_user_id(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing authorization")
+    
+    token = auth_header.split(" ")[1]
+    payload = decode_access_token(token)
+    user_id = payload.get("user_id")
+    
+    request.state.user_id = user_id
+    return user_id
+```
+
+**Service Layer Validation**:
+
+```python
+# src/services/task_service.py
+class TaskService:
+    def validate_ownership(self, task_id: str, user_id: str) -> Task:
+        task = self.db.get(Task, task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        if task.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Access forbidden")
+        return task
+    
+    def get_user_tasks(self, user_id: str, filters: dict = None):
+        query = select(Task).where(Task.user_id == user_id)
+        # Apply filters...
+        return self.db.exec(query).all()
+```
+
+**Route Usage**:
+
+```python
+@router.get("/api/users/{user_id}/tasks")
+async def get_tasks(
+    user_id: str,
+    token_user_id: str = Depends(extract_user_id),
+    db: Session = Depends(get_db)
+):
+    if user_id != token_user_id:
+        raise HTTPException(status_code=403, detail="Access forbidden")
+    
+    service = TaskService(db)
+    return service.get_user_tasks(user_id)
+```
+
+**Error Response Strategy**:
+- **401 Unauthorized**: Missing/invalid/expired token (authentication failure)
+- **403 Forbidden**: Valid token but accessing another user's resource (authorization failure)
+- **404 Not Found**: Resource doesn't exist (security through obscurity for cross-user attempts)
+
+**Security Best Practices**:
+1. Always filter queries by authenticated user_id
+2. Validate path parameter user_id matches token user_id
+3. Use database indexes on user_id for performance
+4. Log all 403 errors for security monitoring
+5. Never expose existence of other users' data in error messages
+
+**Alternatives Considered**:
+- PostgreSQL Row-Level Security: Complex setup, Neon limitations
+- Query Interceptors: Global query modification (magic, hard to debug)
+- Middleware-only validation: Service layer clearer and testable
+- **Selected Service Layer**: Explicit, testable, clear ownership validation
+
+---
+
+### R5: Monorepo Development Workflow
+
+**Decision**: Simple monorepo structure with separate `/frontend` and `/backend` directories.
+
+**Rationale**:
+- Single repository simplifies version control for related changes
+- Independent dependency management for frontend/backend
+- Clear separation of concerns without repository overhead
+- Suitable for 2-project structure (no need for Turborepo/Nx)
+- Easy cross-layer debugging during development
+
+**Project Structure**:
+
+```
+hackathon-todo/
+├── frontend/        # Next.js 14 application
+├── backend/         # FastAPI application
+├── specs/           # Phase II specifications
+├── .gitignore
+└── README.md
+```
+
+**Development Startup** (Windows PowerShell):
+
+```powershell
+# start-dev.ps1
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "cd backend; .\venv\Scripts\Activate.ps1; uvicorn src.main:app --reload --port 8000"
+Start-Process pwsh -ArgumentList "-NoExit", "-Command", "cd frontend; npm run dev"
+```
+
+**CORS Configuration**:
+
+```python
+# Backend: src/main.py
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+**Environment Variables**:
+
+```bash
+# backend/.env
+DATABASE_URL=postgresql://user:password@ep-xxx.region.aws.neon.tech/db?sslmode=require
+JWT_AUTH=your-secret-key-minimum-32-characters
+
+# frontend/.env.local
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+**Port Allocation**:
+- Backend: `http://localhost:8000`
+- Frontend: `http://localhost:3000`
+- Database: Neon cloud (no local port)
+
+**Dependency Installation**:
+
+```bash
+# Backend
+cd backend
+python -m venv venv
+venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+alembic upgrade head
+
+# Frontend
+cd frontend
+npm install
+```
+
+**Alternatives Considered**:
+- Separate Repositories: Harder to manage related changes
+- Polyrepo with Git Submodules: Complex merge conflicts
+- Turborepo/Nx: Overkill for 2-project structure
+- **Selected Simple Monorepo**: Straightforward, version control friendly
+
+---
+
+## Phase II Dependencies Summary
+
+### Backend (`requirements.txt`)
+
+```
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+sqlmodel==0.0.14
+alembic==1.13.1
+psycopg2-binary==2.9.9
+PyJWT==2.8.0
+bcrypt==4.1.2
+python-dotenv==1.0.0
+pydantic[email]==2.5.3
+```
+
+### Frontend (`package.json`)
+
+```json
+{
+  "dependencies": {
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16",
+    "@types/node": "^20.10.6",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18"
+  }
+}
+```
+
+---
+
+## Phase II Research Summary
+
+| Research Task | Technology Decision | Key Benefit |
+|--------------|---------------------|-------------|
+| R1: Authentication | Better Auth + Custom JWT | Full control, lightweight, educational |
+| R2: Database + ORM | Neon PostgreSQL + SQLModel | Serverless, type-safe, FastAPI-native |
+| R3: Frontend | Next.js 14 App Router | Modern React, SSR, production-ready |
+| R4: Security | Service Layer Validation | Explicit, testable, clear ownership |
+| R5: Workflow | Simple Monorepo | Version control friendly, easy setup |
+
+**All technical uncertainties resolved**. Ready to proceed to Phase 1 (Design).
+
+---
+
+## Next Steps
+
+1. ✅ Phase 0 Research Complete
+2. ⏭️ Phase 1: Design (data-model.md, contracts/rest-api.md, quickstart.md)
+3. ⏭️ Update Agent Context (Copilot.md files)
+4. ⏭️ Re-check Constitution Compliance
+5. ⏭️ Phase 2: Task Breakdown (/sp.tasks command)
+
+---
+
+## Phase I Research (Reference Only - Superseded by Phase II)
+
+Phase I focused on in-memory Python console application. The research below is preserved for reference but does not apply to Phase II full-stack web implementation.
 
 ### 1. Python 3.12.4 Suitability for Console Applications
 

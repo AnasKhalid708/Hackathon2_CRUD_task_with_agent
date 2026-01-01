@@ -1,403 +1,728 @@
-# Implementation Plan: Todo In-Memory Python Console Application (Phase I)
+# Implementation Plan: Phase II - Todo Full-Stack Web Application
 
-**Branch**: `main` | **Date**: 2026-01-01 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/main/spec.md`
+**Branch**: `main` | **Date**: 2026-01-01 | **Spec**: specs/main/spec.md
+**Input**: Phase II Planning Request (Constitutional Context)
 
-**Note**: This plan follows the Spec-Kit Plus workflow and the Master Constitution v1.0.0.
+**Note**: This plan executes Phase II of the "Evolution of Todo – 5-Phase Hackathon" under the Master Constitution.
 
 ## Summary
 
-Build a command-line Todo application using Python 3.12.4 that stores data in-memory and provides core CRUD operations (Add, View, Update, Delete, Toggle Complete). This is Phase I of the 5-phase Evolution of Todo Hackathon, implementing only console-based functionality with no persistence, databases, or web interfaces.
+Build a multi-user full-stack Todo web application with JWT authentication (Better Auth), persistent storage (Neon PostgreSQL), RESTful API (FastAPI), and modern UI (Next.js 14). All development follows strict Spec-Driven Development using Copilot CLI for code generation. Phase I (in-memory console app) is complete; Phase II transitions to web architecture with database persistence and multi-user support.
 
 ## Technical Context
 
-**Language/Version**: Python 3.12.4 (EXACT)  
-**Primary Dependencies**: Python standard library (uuid, datetime, sys, os); Optional: rich/colorama for enhanced CLI output  
-**Storage**: In-memory Python dictionary (Dict[str, Task])  
-**Testing**: Manual CLI verification (no automated tests in Phase I)  
-**Target Platform**: Windows/Linux/macOS console  
-**Project Type**: Single project (console application)  
-**Performance Goals**: Instant response time (<10ms for all operations)  
-**Constraints**: No persistence, no databases, no web frameworks, no AI agents, console-only interaction  
-**Scale/Scope**: Small-scale personal task management (expected <1000 tasks per session, 5 commands, single-user)
+**Language/Version**: 
+- Backend: Python 3.12.4 (EXACT VERSION)
+- Frontend: TypeScript 5.x (Next.js 14 App Router)
+
+**Primary Dependencies**:
+- Backend: FastAPI, SQLModel, Alembic, Better Auth (JWT), bcrypt, uvicorn, psycopg2-binary
+- Frontend: Next.js 14, React 18, Tailwind CSS, TypeScript, Better Auth Client
+
+**Storage**: Neon Serverless PostgreSQL (cloud-hosted, persistent)
+
+**Testing**: Manual testing via acceptance criteria checklist (automated tests optional Phase II extension)
+
+**Target Platform**: 
+- Backend: Linux/Windows development server, deployable to any Python WSGI/ASGI host
+- Frontend: Next.js 14 App Router (SSR/CSR hybrid)
+
+**Project Type**: Web (monorepo with separate /frontend and /backend)
+
+**Performance Goals**: 
+- API response time <500ms p95
+- Frontend initial load <3s
+- Support 100+ concurrent users (development target)
+
+**Constraints**: 
+- NO manual code editing (Spec-Driven Development only)
+- JWT_AUTH environment variable MUST be used for token signing
+- Multi-user isolation enforced at database query level
+- All API endpoints require JWT validation except auth routes
+
+**Scale/Scope**: 
+- 5 core CRUD operations (add, delete, update, view, toggle)
+- 2 database models (User, Task)
+- 6 API endpoints (signup, signin, signout, task CRUD)
+- 4 frontend pages (signup, signin, task list, task detail)
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### Compliance Status: ✅ PASS
+**Master Constitution v1.0.0 Compliance Review**
 
-#### Master Constitution v1.0.0 Requirements:
+### ✅ Spec-Driven Development (Section 3)
+- [ ] No manual code writing - Copilot CLI generates all code from specs
+- [ ] All features have clear specifications with acceptance criteria
+- [ ] Code refinement happens through spec updates, not manual edits
+- [ ] Specs are single source of truth
 
-1. **Spec-Driven Development (Section 3)**: ✅ COMPLIANT
-   - Code will be generated from approved spec only
-   - No manual code editing allowed
-   - Spec is single source of truth
-   - Refinement process defined
+### ✅ Documentation Rules (Section 4)
+- [ ] Minimal documentation: one spec per logical area
+- [ ] Continuous updates instead of duplication
+- [ ] Change tracking with phase attribution
+- [ ] Phase II specs evolve from Phase I foundations
 
-2. **Documentation Rules (Section 4)**: ✅ COMPLIANT
-   - Using single evolving spec file: `/specs/main/spec.md`
-   - Plan maintained at: `/specs/main/plan.md`
-   - No unnecessary Markdown proliferation
-   - Changes tracked with version and phase info
+### ✅ Phase Execution Rules (Section 7)
+- [ ] Phase I completed and validated (in-memory console app)
+- [ ] Phase II addendum defined (this plan)
+- [ ] Implementation generated via Copilot CLI
+- [ ] Validation against acceptance criteria before Phase III
+- [ ] Phase freeze before moving to Phase III
 
-3. **Phase Execution Rules (Section 7)**: ✅ COMPLIANT
-   - This is Phase I - correctly scoped
-   - Spec defined before implementation
-   - Acceptance criteria defined
-   - Validation approach documented
-   - Phase freeze criteria established
+### ✅ Feature Evolution Rules (Section 8)
+- [ ] Phase II features: Persistence, web UI, multi-user, RESTful API
+- [ ] Phase III features (AI agents) explicitly deferred
+- [ ] Phase IV/V features (Kubernetes, cloud) explicitly deferred
+- [ ] No premature feature implementation
 
-4. **Feature Evolution Rules (Section 8)**: ✅ COMPLIANT
-   - Phase I implements only: Core CRUD + completion
-   - Phase II features (persistence, web) explicitly forbidden
-   - Phase III features (AI agents) explicitly forbidden
-   - Phase IV/V features (K8s, cloud) explicitly forbidden
+### ✅ Agentic Stack Compliance (Section 6)
+- [ ] Copilot CLI as primary interface
+- [ ] Official Google ADK patterns followed
+- [ ] No LangChain or unapproved frameworks
+- [ ] Better Auth (approved JWT solution)
 
-5. **Hackathon Alignment (Section 9)**: ✅ COMPLIANT
-   - Focus on Phase I core completion
-   - Bonus features deferred
-   - Clear scope boundaries
+### ✅ Hackathon Alignment (Section 9)
+- [ ] Focus: Complete Phase II correctly
+- [ ] Bonus features (Urdu, voice) deferred until all 5 phases complete
+- [ ] Core system stability prioritized
 
-6. **Agentic Stack & Tooling (Section 6)**: ✅ COMPLIANT
-   - Using Gemini CLI / Copilot CLI as primary interface
-   - Claude Code for code generation
-   - No LangChain or unapproved frameworks
-   - Python standard library only
+**GATE STATUS**: ✅ PASS - All constitutional requirements satisfied for Phase II planning
 
-7. **Quality & Compliance (Section 10)**: ✅ COMPLIANT
-   - Deterministic output (in-memory operations)
-   - Reproducible (from spec)
-   - Cleanly structured (modular design)
-   - Phase-aligned (Phase I only)
-   - Traceable to spec
-
-### Constitution Violations: NONE
-
-All requirements from the Master Constitution are satisfied for Phase I scope.
+**Notes**: 
+- Phase I (in-memory console) completed successfully
+- Phase II introduces web stack, persistence, authentication (constitutional progression)
+- No violations detected
+- No complexity exceptions required
 
 ## Project Structure
 
-### Documentation (this feature)
+### Documentation (Phase II)
 
 ```text
 specs/main/
-├── spec.md              # Feature specification (created)
-├── plan.md              # This file (in progress)
-├── research.md          # Phase 0 output (to be created)
-├── data-model.md        # Phase 1 output (to be created)
-├── quickstart.md        # Phase 1 output (to be created)
-└── contracts/           # Phase 1 output (N/A for Phase I - no APIs)
+├── plan.md                        # This file (Phase II implementation plan)
+├── spec.md                        # Phase I spec (reference only)
+├── research.md                    # Phase 0 output: Technology research & decisions
+├── data-model.md                  # Phase 1 output: User & Task entity models
+├── quickstart.md                  # Phase 1 output: Setup and running guide
+├── contracts/                     # Phase 1 output: API specifications
+│   ├── rest-api.md               # RESTful endpoint definitions
+│   └── openapi.yaml              # OpenAPI 3.0 specification (optional)
+├── features/                      # Detailed feature specifications
+│   ├── authentication.md         # Auth flow, JWT, Better Auth integration
+│   └── task-management.md        # Task CRUD with multi-user isolation
+├── frontend-spec.md              # Frontend architecture & components
+├── backend-spec.md               # Backend architecture & routes
+└── tasks.md                       # Phase 2 output: Task breakdown (created by /sp.tasks)
 ```
 
-### Source Code (repository root)
+### Source Code (monorepo root)
 
 ```text
-src/
-├── __init__.py                    # Package marker
-├── main.py                        # Entry point - CLI runner
-├── models/
-│   ├── __init__.py
-│   └── task.py                    # Task entity (dataclass)
-├── services/
-│   ├── __init__.py
-│   └── task_service.py            # Business logic (CRUD + ID prefix + duplicate check)
-├── storage/
-│   ├── __init__.py
-│   └── memory_store.py            # In-memory storage + sorting
-└── cli/
-    ├── __init__.py
-    ├── command_handler.py         # Command dispatcher (interactive prompts only)
-    ├── display.py                 # Output formatting
-    └── sort_manager.py            # User sorting preference manager
-
-README.md                          # Setup and usage instructions
-requirements.txt                   # Optional dependencies (rich/colorama)
-.gitignore                         # Python standard ignores
+hackathon-todo/                    # Project root
+├── .spec-kit/                     # Spec-Kit Plus configuration
+├── .specify/                      # Spec tooling and templates
+│   ├── memory/
+│   │   └── constitution.md       # Master Constitution v1.0.0
+│   └── scripts/
+│       └── powershell/
+│           ├── setup-plan.ps1
+│           └── update-agent-context.ps1
+├── specs/                         # All specifications (see above)
+├── history/                       # Prompt History Records
+│   └── prompts/
+│       ├── constitution/
+│       ├── main/                 # Phase II PHRs
+│       └── general/
+├── frontend/                      # Next.js 14 application
+│   ├── Copilot.md                # Frontend code generation guidelines
+│   ├── src/
+│   │   ├── app/                  # Next.js App Router
+│   │   │   ├── page.tsx          # Home/landing page
+│   │   │   ├── signup/
+│   │   │   │   └── page.tsx      # User registration page
+│   │   │   ├── signin/
+│   │   │   │   └── page.tsx      # User login page
+│   │   │   ├── tasks/
+│   │   │   │   ├── page.tsx      # Task list page (main app)
+│   │   │   │   └── [id]/
+│   │   │   │       └── page.tsx  # Task detail/edit page
+│   │   │   └── layout.tsx        # Root layout with auth context
+│   │   ├── components/           # React components
+│   │   │   ├── auth/
+│   │   │   │   ├── SignupForm.tsx
+│   │   │   │   ├── SigninForm.tsx
+│   │   │   │   └── ProtectedRoute.tsx
+│   │   │   ├── tasks/
+│   │   │   │   ├── TaskList.tsx
+│   │   │   │   ├── TaskItem.tsx
+│   │   │   │   ├── TaskForm.tsx  # Add/edit task
+│   │   │   │   ├── TaskFilters.tsx
+│   │   │   │   └── TaskSearch.tsx
+│   │   │   └── ui/               # Reusable UI components
+│   │   │       ├── Button.tsx
+│   │   │       ├── Input.tsx
+│   │   │       └── Modal.tsx
+│   │   ├── lib/                  # Utilities and API client
+│   │   │   ├── api.ts            # API client with JWT injection
+│   │   │   ├── auth.ts           # Better Auth client configuration
+│   │   │   └── utils.ts
+│   │   └── types/                # TypeScript types
+│   │       ├── task.ts
+│   │       └── user.ts
+│   ├── public/                   # Static assets
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tailwind.config.ts
+│   ├── postcss.config.js
+│   ├── next.config.js
+│   └── .env.example
+├── backend/                       # FastAPI application
+│   ├── Copilot.md                # Backend code generation guidelines
+│   ├── src/
+│   │   ├── main.py               # FastAPI app entry point
+│   │   ├── config.py             # Environment configuration
+│   │   ├── database.py           # Database connection & session management
+│   │   ├── models/               # SQLModel database models
+│   │   │   ├── __init__.py
+│   │   │   ├── user.py           # User model (id, email, hashed_password)
+│   │   │   └── task.py           # Task model (id, user_id, title, etc.)
+│   │   ├── routes/               # API route handlers
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py           # POST /auth/signup, /auth/signin, /auth/signout
+│   │   │   └── tasks.py          # Task CRUD endpoints
+│   │   ├── middleware/           # Request middleware
+│   │   │   ├── __init__.py
+│   │   │   └── jwt_auth.py       # JWT token validation
+│   │   ├── schemas/              # Pydantic request/response schemas
+│   │   │   ├── __init__.py
+│   │   │   ├── auth.py           # SignupRequest, SigninRequest, TokenResponse
+│   │   │   └── task.py           # TaskCreate, TaskUpdate, TaskResponse
+│   │   ├── services/             # Business logic
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_service.py   # User registration, login, JWT generation
+│   │   │   └── task_service.py   # Task CRUD with user ownership validation
+│   │   └── utils/                # Utilities
+│   │       ├── __init__.py
+│   │       ├── password.py       # bcrypt hashing
+│   │       └── jwt.py            # JWT encode/decode
+│   ├── alembic/                  # Database migrations
+│   │   ├── versions/
+│   │   ├── env.py
+│   │   └── alembic.ini
+│   ├── requirements.txt
+│   ├── .env.example
+│   └── README.md
+├── docker-compose.yml             # Optional: Local development environment
+├── .gitignore
+└── README.md                      # Project overview and setup instructions
 ```
 
-**Structure Decision**: Single project structure selected because Phase I is a standalone console application with no web, mobile, or multi-project requirements. All code lives under `/src` following Python best practices with clear separation of concerns:
-
-- **models/**: Data structures and entities
-- **services/**: Business logic and operations
-- **storage/**: Data persistence layer (in-memory)
-- **cli/**: User interface and command handling
-
-This structure supports:
-- Clean imports and modularity
-- Easy testing (future phases)
-- Clear separation of concerns
-- Natural evolution to Phase II (persistence layer swap)
-- Pythonic conventions (PEP 8 compliant)
+**Structure Decision**: Web application monorepo with separate `/frontend` and `/backend` directories. This structure supports clear separation of concerns, independent deployment options, and aligns with Phase II full-stack requirements. Phase I code (in-memory console) can remain in `/src` for reference but is not used in Phase II.
 
 ## Complexity Tracking
 
-**Status**: NOT APPLICABLE - No constitution violations detected.
+**NO VIOLATIONS DETECTED** - Phase II complexity aligns with constitutional requirements.
 
-All complexity is justified within Phase I scope and Master Constitution compliance.
+This section documents only justified violations per Constitution Check requirements. Phase II introduces web architecture, persistence, and multi-user authentication as part of natural progression from Phase I (in-memory console) to Phase II (full-stack web), which is explicitly sanctioned by Master Constitution Section 8 (Feature Evolution Rules).
 
----
+**Architectural Justifications**:
+- **Monorepo structure**: Required to maintain frontend + backend in single repository for Phase II scope
+- **JWT authentication**: Better Auth with JWT is the approved authentication standard for multi-user web applications
+- **Neon PostgreSQL**: Phase II explicitly requires persistent storage (upgrade from Phase I in-memory)
+- **Next.js 14 App Router**: Modern React framework for server-side rendering and routing
 
-## High-Level Architecture
-
-### Component Diagram (Text-Based)
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         User (CLI)                          │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    main.py (Entry Point)                    │
-│  • Initializes components                                   │
-│  • Runs command loop (REPL)                                 │
-│  • Handles Ctrl+C / exit signals                            │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ↓
-┌─────────────────────────────────────────────────────────────┐
-│                  cli/command_handler.py                     │
-│  • Parses user input (command only, no args)               │
-│  • Dispatches to appropriate command                        │
-│  • Interactive prompts for all inputs                       │
-│  • Task ID prefix matching (any length if unique)          │
-│  • Duplicate title detection with confirmation             │
-│  • Moderate error messages (type + reason)                 │
-│  • Coordinates with Display for output                      │
-└────────────┬────────────────────────────┬───────────────────┘
-             │                            │
-             ↓                            ↓
-┌────────────────────────┐    ┌──────────────────────────────┐
-│   cli/display.py       │    │  services/task_service.py    │
-│  • Format task list    │    │  • Add task                  │
-│  • Format messages     │    │  • Get task by ID or prefix  │
-│  • Status indicators   │    │  • Update task               │
-│  • Error messages      │    │  • Delete task               │
-└────────────────────────┘    │  • Toggle complete           │
-                              │  • List all tasks (sorted)   │
-                              │  • Check duplicate titles    │
-                              │  • Resolve ID prefix         │
-                              └──────────┬───────────────────┘
-                                         │
-                                         ↓
-                              ┌──────────────────────────────┐
-                              │  storage/memory_store.py     │
-                              │  • Dict[str, Task]           │
-                              │  • CRUD operations           │
-                              │  • O(1) lookups              │
-                              │  • Sorting: A/B/C/D options  │
-                              │  • Title duplicate check     │
-                              │  • ID prefix resolution      │
-                              └──────────┬───────────────────┘
-                                         │
-                                         ↓
-                              ┌──────────────────────────────┐
-                              │     models/task.py           │
-                              │  • Task dataclass            │
-                              │  • Factory method            │
-                              │  • Validation rules          │
-                              │  • Update/toggle methods     │
-                              └──────────────────────────────┘
-```
-
-### Data Flow
-
-#### Example: Add Task Flow
-
-```
-1. User types: "add"
-   ↓
-2. main.py reads input, passes to CommandHandler
-   ↓
-3. CommandHandler.dispatch("add", [])
-   ↓
-4. CommandHandler.handle_add():
-   - Prompts for title
-   - Prompts for description
-   - Validates input
-   ↓
-5. TaskService.add_task(title, description)
-   ↓
-6. Task.create(title, description)
-   - Generates UUID
-   - Sets defaults (completed=False, timestamp)
-   ↓
-7. MemoryStore.add(task)
-   - Stores in dictionary: _tasks[task.id] = task
-   ↓
-8. Return success to CommandHandler
-   ↓
-9. Display.show_success(f"Task {task.short_id()} added")
-   ↓
-10. User sees: "✓ Task added successfully! ID: 550e8400"
-```
-
-### Layer Responsibilities
-
-| Layer | Responsibility | Files |
-|-------|----------------|-------|
-| **Entry** | Application initialization, REPL loop | main.py |
-| **CLI** | User interaction, command parsing, output formatting | cli/command_handler.py, cli/display.py |
-| **Service** | Business logic, orchestration, validation | services/task_service.py |
-| **Storage** | Data persistence (in-memory), CRUD operations | storage/memory_store.py |
-| **Model** | Data structures, entity validation, factory methods | models/task.py |
-
-### Design Principles
-
-1. **Separation of Concerns**: Each layer has a single responsibility
-2. **Dependency Injection**: Service receives store via constructor
-3. **Encapsulation**: Storage implementation hidden behind TaskService
-4. **Immutability**: Task IDs and timestamps cannot be changed
-5. **Factory Pattern**: Task creation centralized in factory method
-6. **Command Pattern**: Commands dispatched through handler dictionary
+All complexity is phase-appropriate and constitutionally sanctioned.
 
 ---
 
-## Implementation Workflow
+## Phase 0: Research & Technology Decisions
 
-### Phase 0: Research ✅ COMPLETE
-- [x] Created research.md
-- [x] All technical decisions documented
-- [x] All NEEDS CLARIFICATION resolved
-- [x] Best practices identified
+### Research Tasks
 
-### Phase 1: Design & Contracts ✅ COMPLETE
-- [x] Created data-model.md (Task entity, MemoryStore)
-- [x] Created quickstart.md (user documentation)
-- [x] Updated agent context (Copilot instructions)
-- [x] No API contracts needed (console-only)
+**Phase 0 generates `research.md` to resolve all technical unknowns before design.**
 
-### Phase 2: Task Breakdown (NOT PART OF THIS COMMAND)
-Will be handled by `/sp.tasks` command to generate tasks.md:
-- Break down implementation into discrete tasks
-- Categorize tasks (models, services, CLI, tests, docs)
-- Define dependencies between tasks
-- Estimate complexity
+#### R1: Better Auth + JWT Integration with FastAPI
+**Question**: How to integrate Better Auth JWT tokens with FastAPI middleware?
+**Research Focus**:
+- Better Auth server-side configuration for JWT generation
+- FastAPI dependency injection for JWT validation
+- Token refresh strategies
+- httpOnly cookie vs. localStorage security trade-offs
 
-### Phase 3: Implementation (FUTURE)
-Code generation by Claude Code or Gemini CLI:
-1. Create models/task.py (Task dataclass)
-2. Create storage/memory_store.py (MemoryStore)
-3. Create services/task_service.py (TaskService)
-4. Create cli/display.py (Display formatting)
-5. Create cli/command_handler.py (CommandHandler)
-6. Create main.py (Entry point)
-7. Create README.md (Setup instructions)
-8. Create requirements.txt (Optional dependencies)
-9. Create .gitignore (Python ignores)
+**Expected Output**: 
+- JWT_AUTH environment variable usage pattern
+- FastAPI middleware implementation strategy
+- Token validation decorator pattern
+- Error handling for expired/invalid tokens
 
-### Phase 4: Validation (FUTURE)
-Manual verification against acceptance criteria:
-- Test all 5 commands (add, list, update, delete, toggle)
-- Test error handling (empty title, invalid ID)
-- Test edge cases (empty list, toggle twice)
-- Verify output formatting
-- Verify Phase I scope compliance
+#### R2: Neon PostgreSQL + SQLModel ORM Setup
+**Question**: How to connect SQLModel ORM to Neon Serverless PostgreSQL?
+**Research Focus**:
+- Neon connection string format
+- SQLModel engine configuration for async operations
+- Connection pooling best practices
+- Alembic migration patterns with SQLModel
+
+**Expected Output**:
+- Database connection configuration
+- Session management pattern
+- Migration workflow
+- Environment variable setup (DATABASE_URL)
+
+#### R3: Next.js 14 App Router + Better Auth Client
+**Question**: How to implement Better Auth client in Next.js 14 App Router?
+**Research Focus**:
+- Better Auth React hooks
+- Protected route patterns with App Router
+- Server components vs. client components for auth
+- Token storage and refresh in client
+
+**Expected Output**:
+- Auth context provider pattern
+- Protected route wrapper component
+- API client with automatic token injection
+- SSR-compatible auth state management
+
+#### R4: Multi-User Isolation at Database Level
+**Question**: How to enforce user_id filtering in all SQLModel queries?
+**Research Focus**:
+- SQLModel query filtering patterns
+- FastAPI request context for user_id extraction
+- Row-level security considerations
+- Authorization middleware vs. service-level validation
+
+**Expected Output**:
+- Service layer pattern for user-scoped queries
+- Middleware to extract user_id from JWT
+- Validation patterns to prevent cross-user access
+- Error responses for unauthorized access (403 vs 401)
+
+#### R5: Monorepo Development Workflow
+**Question**: How to run frontend + backend simultaneously in development?
+**Research Focus**:
+- docker-compose for local development (optional)
+- Environment variable management (.env files)
+- CORS configuration for local development
+- Port allocation (backend 8000, frontend 3000)
+
+**Expected Output**:
+- Development startup script or documentation
+- CORS configuration for FastAPI
+- Environment variable template (.env.example)
+- Dependency installation workflow
+
+### Research Output Format
+
+`specs/main/research.md` will contain:
+
+```markdown
+# Phase II Research: Technology Decisions
+
+## Decision: Better Auth + JWT with FastAPI
+**Rationale**: [findings]
+**Implementation**: [code patterns]
+**Alternatives Considered**: [other auth solutions]
+
+## Decision: Neon + SQLModel Configuration
+**Rationale**: [findings]
+**Implementation**: [connection pattern]
+**Alternatives Considered**: [other PostgreSQL hosting]
+
+[... etc for all research tasks]
+```
 
 ---
 
-## Feature Breakdown
+## Phase 1: Design & Contracts
 
-### Core Features (ALL Required for Phase I)
+**Prerequisites**: `research.md` complete with all decisions documented
 
-#### 1. Task Model
-**Files**: `models/task.py`
-**Description**: Task entity with validation and factory methods
-**Acceptance Criteria**:
-- Dataclass with id, title, description, completed, created_at
-- Factory method generates UUID and timestamp
-- Update method validates title/description
-- Toggle method flips completed boolean
-- Validation: title non-empty, max lengths enforced
+### P1.1: Data Model Design (`data-model.md`)
 
-#### 2. Memory Storage
-**Files**: `storage/memory_store.py`
-**Description**: In-memory dictionary-based storage
-**Acceptance Criteria**:
-- Dict[str, Task] internal structure
-- CRUD operations: add, get, get_all, delete
-- O(1) lookup by ID
-- exists() and count() utility methods
-- No persistence (expected behavior)
+#### User Entity
+```
+User:
+  - id: UUID (primary key, auto-generated)
+  - email: String (unique, required, max 255 chars)
+  - hashed_password: String (required, bcrypt hash)
+  - created_at: DateTime (auto-generated, UTC)
+  - updated_at: DateTime (auto-updated, UTC)
 
-#### 3. Task Service
-**Files**: `services/task_service.py`
-**Description**: Business logic orchestration
-**Acceptance Criteria**:
-- add_task(title, description) creates and stores task after duplicate check with confirmation
-- get_task(task_id_or_prefix) retrieves by full ID or unique prefix with error handling
-- resolve_id_prefix(prefix) returns full ID or error if ambiguous/not found
-- check_duplicate_title(title) returns boolean for duplicate detection
-- update_task(task_id_or_prefix, title, description) validates and updates
-- delete_task(task_id_or_prefix) removes from storage
-- toggle_task(task_id_or_prefix) marks complete/incomplete
-- list_tasks(sort_option) returns all tasks with specified sorting (A/B/C/D)
-- Moderate error messages: type + reason only
+Validations:
+  - email: valid email format, unique constraint
+  - password: min 8 characters, hashed with bcrypt before storage
 
-#### 4. Command Handler
-**Files**: `cli/command_handler.py`
-**Description**: Command parsing and dispatch
-**Acceptance Criteria**:
-- Command dictionary maps command strings to handlers
-- NO command-line arguments; all inputs via interactive prompts
-- Interactive prompts for add (title, description, confirmation if duplicate)
-- Interactive prompts for update (ID prefix, title, description)
-- Interactive prompts for delete (ID prefix)
-- Interactive prompts for toggle (ID prefix)
-- Moderate error handling (type + reason) for invalid commands and IDs
-- ID prefix matching with ambiguity detection
-- Help command lists all commands
-- Sort command sets user sorting preference
-- Exit command terminates application
+Relationships:
+  - One User has many Tasks (cascade delete)
+```
 
-#### 5. Display Formatter
-**Files**: `cli/display.py`
-**Description**: Output formatting and presentation
-**Acceptance Criteria**:
-- Format task list with table layout (sorted by user preference)
-- Show ID (8 chars minimum, accept any prefix length for input)
-- Show title, description, status, timestamp
-- Status indicators: ✓ (complete) / ✗ (incomplete)
-- Success messages (green if using rich)
-- Moderate error messages (red if using rich): error type + reason only
-- Ambiguous ID error lists matching IDs
-- Duplicate title warning message
-- Fallback to plain text if rich unavailable
+#### Task Entity
+```
+Task:
+  - id: UUID (primary key, auto-generated)
+  - user_id: UUID (foreign key → User.id, required, indexed)
+  - title: String (required, non-empty, max 200 chars)
+  - description: String (optional, max 2000 chars)
+  - completed: Boolean (default: False)
+  - created_at: DateTime (auto-generated, UTC)
+  - updated_at: DateTime (auto-updated, UTC)
 
-#### 6. Entry Point
-**Files**: `main.py`
-**Description**: Application initialization and REPL
-**Acceptance Criteria**:
-- Initialize all components (Store, Service, Handler, Display)
-- Welcome message with instructions
-- Infinite loop reading commands
-- Handle Ctrl+C, Ctrl+D, EOF gracefully
-- Exit message on quit
-- if __name__ == "__main__" pattern
+Validations:
+  - title: non-empty string
+  - user_id: must reference existing User
+  - All queries MUST filter by user_id from JWT
 
-#### 7. Documentation
-**Files**: `README.md`, `requirements.txt`, `.gitignore`
-**Description**: Setup and usage documentation
-**Acceptance Criteria**:
-- README: Python version, setup, how to run, example usage
-- Document interactive prompt workflow (no command args)
-- Document ID prefix matching feature
-- Document duplicate title warning behavior
-- Document sorting options (A/B/C/D) with default (D)
-- Document moderate error message format
-- requirements.txt: rich (optional)
-- .gitignore: Python standard ignores (__pycache__, *.pyc, etc.)
+Relationships:
+  - Many Tasks belong to one User
 
-#### 8. Sort Manager
-**Files**: `cli/sort_manager.py`
-**Description**: User sorting preference management
-**Acceptance Criteria**:
-- Store current user sorting preference (in-memory)
-- Default: Option D (incomplete first, then by creation time)
-- Support options: A (insertion), B (oldest first), C (newest first), D (incomplete first)
-- Provide get/set methods for current preference
-- Integrate with task listing flow
+Indexes:
+  - user_id (for efficient user task queries)
+  - created_at (for sorting)
+```
+
+### P1.2: API Contracts (`contracts/rest-api.md`)
+
+#### Authentication Endpoints
+
+```
+POST /api/auth/signup
+Request Body:
+  {
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }
+Response (201 Created):
+  {
+    "user_id": "uuid",
+    "email": "user@example.com",
+    "token": "jwt.token.here"
+  }
+Errors:
+  - 400: Invalid email format or password too short
+  - 409: Email already exists
+
+POST /api/auth/signin
+Request Body:
+  {
+    "email": "user@example.com",
+    "password": "SecurePass123"
+  }
+Response (200 OK):
+  {
+    "user_id": "uuid",
+    "email": "user@example.com",
+    "token": "jwt.token.here"
+  }
+Errors:
+  - 401: Invalid credentials
+  - 400: Missing email or password
+
+POST /api/auth/signout
+Headers: Authorization: Bearer {token}
+Response (200 OK):
+  { "message": "Signed out successfully" }
+Note: Client-side token deletion (stateless JWT)
+```
+
+#### Task CRUD Endpoints (All require JWT)
+
+```
+GET /api/users/{user_id}/tasks
+Headers: Authorization: Bearer {token}
+Query Params:
+  - completed: boolean (optional, filter by completion status)
+  - sort: "created_asc" | "created_desc" | "title_asc" | "title_desc" (optional)
+  - search: string (optional, search title/description)
+Response (200 OK):
+  {
+    "tasks": [
+      {
+        "id": "uuid",
+        "user_id": "uuid",
+        "title": "Task title",
+        "description": "Task description",
+        "completed": false,
+        "created_at": "2026-01-01T10:00:00Z",
+        "updated_at": "2026-01-01T10:00:00Z"
+      }
+    ],
+    "total": 10
+  }
+Errors:
+  - 401: Invalid/missing token
+  - 403: user_id mismatch with token claims
+
+POST /api/users/{user_id}/tasks
+Headers: Authorization: Bearer {token}
+Request Body:
+  {
+    "title": "New task",
+    "description": "Optional description"
+  }
+Response (201 Created):
+  {
+    "id": "uuid",
+    "user_id": "uuid",
+    "title": "New task",
+    "description": "Optional description",
+    "completed": false,
+    "created_at": "2026-01-01T10:00:00Z",
+    "updated_at": "2026-01-01T10:00:00Z"
+  }
+Errors:
+  - 400: Empty title
+  - 401: Invalid/missing token
+  - 403: user_id mismatch
+
+GET /api/users/{user_id}/tasks/{task_id}
+Headers: Authorization: Bearer {token}
+Response (200 OK): [Task object]
+Errors:
+  - 401: Invalid/missing token
+  - 403: user_id mismatch or task not owned by user
+  - 404: Task not found
+
+PUT /api/users/{user_id}/tasks/{task_id}
+Headers: Authorization: Bearer {token}
+Request Body:
+  {
+    "title": "Updated title",
+    "description": "Updated description"
+  }
+Response (200 OK): [Updated Task object]
+Errors:
+  - 400: Empty title
+  - 401: Invalid/missing token
+  - 403: user_id mismatch or task not owned by user
+  - 404: Task not found
+
+DELETE /api/users/{user_id}/tasks/{task_id}
+Headers: Authorization: Bearer {token}
+Response (204 No Content)
+Errors:
+  - 401: Invalid/missing token
+  - 403: user_id mismatch or task not owned by user
+  - 404: Task not found
+
+PATCH /api/users/{user_id}/tasks/{task_id}/complete
+Headers: Authorization: Bearer {token}
+Request Body:
+  {
+    "completed": true
+  }
+Response (200 OK): [Updated Task object]
+Errors:
+  - 401: Invalid/missing token
+  - 403: user_id mismatch or task not owned by user
+  - 404: Task not found
+```
+
+### P1.3: Frontend Component Specifications
+
+#### Page Components
+- `SignupPage`: User registration form with email/password validation
+- `SigninPage`: User login form with error handling
+- `TaskListPage`: Main task management interface with filters, search, sort
+- `TaskDetailPage`: Edit task form (optional, can be modal)
+
+#### Reusable Components
+- `ProtectedRoute`: HOC/wrapper to enforce authentication
+- `TaskList`: Display tasks with completion toggle
+- `TaskItem`: Single task display with edit/delete actions
+- `TaskForm`: Add/edit task form with validation
+- `TaskFilters`: Filter by completion status
+- `TaskSearch`: Search by title/description
+
+### P1.4: Agent Context Update
+
+**Run**: `.specify\scripts\powershell\update-agent-context.ps1 -AgentType copilot`
+
+This updates `frontend/Copilot.md` and `backend/Copilot.md` with:
+- Phase II technology stack
+- Code generation conventions
+- API contract references
+- Security patterns (JWT validation, user isolation)
+
+### P1.5: Quickstart Guide (`quickstart.md`)
+
+```markdown
+# Phase II Quickstart: Todo Full-Stack Web Application
+
+## Prerequisites
+- Python 3.12.4
+- Node.js 18+ and npm
+- Neon PostgreSQL account (free tier)
+
+## Environment Setup
+
+### Backend (.env)
+```
+DATABASE_URL=postgresql://user:pass@host/db
+JWT_AUTH=your-secret-key-min-32-chars
+```
+
+### Frontend (.env.local)
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+## Installation
+
+### Backend
+```bash
+cd backend
+pip install -r requirements.txt
+alembic upgrade head
+uvicorn src.main:app --reload --port 8000
+```
+
+### Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## First Run
+1. Navigate to http://localhost:3000
+2. Click "Sign Up" and create account
+3. Sign in with credentials
+4. Start managing tasks!
+
+## Development Workflow
+1. Update specs in `/specs/main/`
+2. Use Copilot CLI to generate code from specs
+3. Test functionality against acceptance criteria
+4. Refine specs if issues found, regenerate code
+```
+
+---
+
+## Phase 2: Task Breakdown (Deferred to /sp.tasks)
+
+**Phase 2 execution**: Run `/sp.tasks` command to generate `specs/main/tasks.md`
+
+The tasks file will break down implementation into:
+
+### Backend Tasks (B1-B10)
+- B1: SQLModel User and Task models with relationships
+- B2: Alembic migration scripts (create users, create tasks)
+- B3: Database connection and session management
+- B4: Password hashing utility (bcrypt)
+- B5: JWT encoding/decoding utility
+- B6: Auth service (signup, signin logic)
+- B7: Auth routes (POST /auth/signup, /auth/signin, /auth/signout)
+- B8: JWT authentication middleware
+- B9: Task service with user ownership validation
+- B10: Task routes (all CRUD endpoints)
+
+### Frontend Tasks (F1-F10)
+- F1: Better Auth client configuration
+- F2: API client with JWT injection
+- F3: Auth context provider
+- F4: ProtectedRoute wrapper component
+- F5: Signup page and form
+- F6: Signin page and form
+- F7: Task list page with filters/search/sort
+- F8: TaskList and TaskItem components
+- F9: TaskForm component (add/edit)
+- F10: Error handling and loading states
+
+### Integration Tasks (I1-I5)
+- I1: CORS configuration
+- I2: End-to-end auth flow testing
+- I3: Multi-user isolation verification
+- I4: Error handling validation
+- I5: Performance and security review
+
+---
+
+## Phase II Completion Checklist
+
+### Planning Phase (Pre-Implementation) ✅
+- [x] Feature specifications created
+- [x] API specification created
+- [x] Database schema specification created
+- [x] Architecture document created
+- [x] Constitution compliance verified
+
+### Phase 0: Research ⏳
+- [ ] research.md completed with all technology decisions
+- [ ] Better Auth + JWT integration documented
+- [ ] Neon + SQLModel configuration documented
+- [ ] Next.js 14 auth patterns documented
+- [ ] Multi-user isolation strategy documented
+- [ ] Development workflow documented
+
+### Phase 1: Design ⏳
+- [ ] data-model.md created (User + Task entities)
+- [ ] contracts/rest-api.md created (all endpoints)
+- [ ] quickstart.md created
+- [ ] Agent context updated (Copilot.md files)
+- [ ] Constitution re-check passed
+
+### Phase 2: Task Breakdown ⏳
+- [ ] /sp.tasks command executed
+- [ ] tasks.md generated with backend/frontend/integration tasks
+- [ ] Task dependencies identified
+- [ ] Implementation order determined
+
+### Implementation (Code Generation) - Future
+- [ ] Backend database models generated
+- [ ] Backend API routes generated
+- [ ] Backend JWT middleware generated
+- [ ] Frontend authentication pages generated
+- [ ] Frontend task management pages generated
+- [ ] Frontend API client generated
+- [ ] Database migrations created
+- [ ] Environment configuration setup
+
+### Validation (Testing) - Future
+- [ ] User can sign up successfully
+- [ ] User can sign in and receive token
+- [ ] Token is validated on all API requests
+- [ ] Unauthorized requests return 401
+- [ ] User can only access their own tasks
+- [ ] All CRUD operations work correctly
+- [ ] Filtering, sorting, search work in frontend
+- [ ] Multi-user isolation verified
+- [ ] Token expiry handled gracefully
+- [ ] Error messages are user-friendly
+
+### Phase II Freeze Criteria
+- [ ] All acceptance criteria validated
+- [ ] No critical bugs
+- [ ] Performance targets met (<500ms API, <3s frontend load)
+- [ ] Security validated (JWT, user isolation)
+- [ ] Documentation complete
+- [ ] Ready for Phase III (AI agent integration)
+
+---
+
+## Out of Scope (Deferred to Future Phases)
+
+**Phase III (AI Agents)**:
+- Natural language task management
+- Chatbot interface
+- AI-powered task suggestions
+
+**Phase IV (Kubernetes)**:
+- Container orchestration
+- Local cluster deployment
+- Service mesh
+
+**Phase V (Cloud-Native)**:
+- Cloud provider deployment
+- Horizontal scaling
+- Advanced monitoring
+
+**Bonus Features (Post-Phase V)**:
+- Urdu language support
+- Voice commands
+- Advanced analytics
 
 ---
 
@@ -405,124 +730,140 @@ Manual verification against acceptance criteria:
 
 ### Manual Testing Checklist
 
-#### Add Task Tests
-- [ ] Add task with title only → Success with ID
-- [ ] Add task with title and description → Success with details
-- [ ] Add task with empty title → Error message
-- [ ] Add task with very long title (>200 chars) → Error message
-- [ ] Verify UUID generated correctly
-- [ ] Verify completed=False by default
-- [ ] Verify timestamp in ISO 8601 format
+#### Authentication
+1. Sign up with valid email/password → Success
+2. Sign up with existing email → 409 error
+3. Sign up with invalid email → 400 error
+4. Sign in with valid credentials → Receive JWT token
+5. Sign in with invalid credentials → 401 error
+6. Access protected route without token → 401 error
+7. Access protected route with expired token → 401 error
 
-#### List Tasks Tests
-- [ ] List when no tasks exist → "No tasks found"
-- [ ] List with 1 task → Shows task details
-- [ ] List with 3+ tasks → Shows all in creation order
-- [ ] Verify ID shortened to 8 characters
-- [ ] Verify status indicators (✓/✗) displayed correctly
-- [ ] Verify timestamps formatted correctly
-- [ ] Verify table alignment
+#### Task CRUD
+1. Create task with title only → Success
+2. Create task with title + description → Success
+3. Create task with empty title → 400 error
+4. View task list → See only own tasks
+5. Update own task → Success
+6. Delete own task → Success
+7. Toggle task completion → Success
+8. Attempt to access another user's task → 403 error
 
-#### Update Task Tests
-- [ ] Update title only → Title changed, description unchanged
-- [ ] Update description only → Description changed, title unchanged
-- [ ] Update both fields → Both changed
-- [ ] Update with invalid ID → Error message "Task not found"
-- [ ] Update with empty title → Error message
-- [ ] Verify updated values in next list command
+#### Frontend Features
+1. Filter tasks by completion status → Correct results
+2. Sort tasks by creation date (asc/desc) → Correct order
+3. Sort tasks by title (asc/desc) → Correct order
+4. Search tasks by title → Correct matches
+5. Search tasks by description → Correct matches
+6. Loading states display during API calls → Visual feedback
+7. Error messages display for failed operations → User-friendly text
 
-#### Delete Task Tests
-- [ ] Delete existing task → Success message
-- [ ] Verify task removed (not in list)
-- [ ] Delete invalid ID → Error message "Task not found"
-- [ ] Delete same ID twice → Second time fails
-- [ ] Delete all tasks → List shows "No tasks found"
-
-#### Toggle Complete Tests
-- [ ] Toggle incomplete → marked complete (✓)
-- [ ] Toggle complete → marked incomplete (✗)
-- [ ] Toggle invalid ID → Error message
-- [ ] Toggle multiple times → alternates correctly
-- [ ] Verify status in list command
-
-#### Error Handling Tests
-- [ ] Invalid command → "Unknown command" message
-- [ ] Command with missing arguments → Helpful error
-- [ ] Empty input → Ignored (re-prompt)
-- [ ] Ctrl+C → Graceful exit
-- [ ] Ctrl+D → Graceful exit
-
-#### Integration Tests
-- [ ] Full workflow: add → list → update → toggle → delete
-- [ ] Multiple tasks workflow
-- [ ] Data lost after exit (expected behavior)
-- [ ] Application restarts with empty state
-
-### Success Criteria
-
-Phase I is complete when:
-1. ✅ All 5 core commands implemented and working
-2. ✅ All acceptance criteria met (from spec.md)
-3. ✅ Manual testing checklist 100% passed
-4. ✅ Code structured under `/src` with proper modules
-5. ✅ README.md with clear setup and usage instructions
-6. ✅ No manual code edits (spec-driven generation only)
-7. ✅ No database, web, or AI components (Phase I scope)
-8. ✅ Constitution compliance verified (no violations)
+### Multi-User Isolation Test
+1. Create User A and User B
+2. User A creates 3 tasks
+3. User B creates 3 tasks
+4. Verify User A sees only their 3 tasks
+5. Verify User B sees only their 3 tasks
+6. Attempt to access User A's task with User B's token → 403 error
 
 ---
 
-## Risk & Mitigation
+## Architecture Flow Diagram (Conceptual)
 
-| Risk | Impact | Mitigation |
-|------|--------|-----------|
-| Python version mismatch | High | Document exact version (3.12.4) in README and spec |
-| Task ID collision | Low | UUID v4 has negligible collision probability |
-| Memory limit with many tasks | Low | Phase I scope <1000 tasks, well within limits |
-| User confusion with UUID IDs | Medium | Display only first 8 chars, accept partial IDs |
-| Data loss on exit | Expected | Document clearly in README and quickstart |
-| Incorrect code generation | Medium | Use detailed spec, validate against acceptance criteria |
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND (Next.js 14)                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Signup Page  │  │ Signin Page  │  │  Task List   │          │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘          │
+│         │                  │                  │                   │
+│         └──────────────────┴──────────────────┘                  │
+│                            │                                      │
+│                    ┌───────▼──────┐                              │
+│                    │ API Client   │ (JWT injection)              │
+│                    │ (Better Auth)│                              │
+│                    └───────┬──────┘                              │
+└────────────────────────────┼─────────────────────────────────────┘
+                             │ HTTP/REST
+                             │ Authorization: Bearer {token}
+┌────────────────────────────▼─────────────────────────────────────┐
+│                        BACKEND (FastAPI)                          │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │              JWT Middleware (validate token)              │   │
+│  └──────────────────────────┬───────────────────────────────┘   │
+│                             │                                     │
+│         ┌───────────────────┴───────────────────┐                │
+│         │                                       │                │
+│  ┌──────▼──────┐                        ┌──────▼──────┐         │
+│  │ Auth Routes │                        │ Task Routes │         │
+│  │ /auth/*     │                        │ /users/{id}/│         │
+│  └──────┬──────┘                        │   tasks/*   │         │
+│         │                                └──────┬──────┘         │
+│         │                                       │                │
+│  ┌──────▼──────┐                        ┌──────▼──────┐         │
+│  │Auth Service │                        │Task Service │         │
+│  │(signup,     │                        │(CRUD with   │         │
+│  │ signin)     │                        │ user filter)│         │
+│  └──────┬──────┘                        └──────┬──────┘         │
+│         │                                       │                │
+│         └───────────────────┬───────────────────┘                │
+│                             │                                     │
+│                     ┌───────▼──────┐                             │
+│                     │   SQLModel   │                             │
+│                     │   (ORM)      │                             │
+│                     └───────┬──────┘                             │
+└─────────────────────────────┼─────────────────────────────────────┘
+                             │ SQL queries
+┌────────────────────────────▼─────────────────────────────────────┐
+│                   Neon PostgreSQL (Cloud)                         │
+│  ┌──────────────┐              ┌──────────────┐                  │
+│  │ users table  │              │ tasks table  │                  │
+│  │ - id (PK)    │              │ - id (PK)    │                  │
+│  │ - email      │◄─────────────┤ - user_id(FK)│                  │
+│  │ - hashed_pwd │   1:many     │ - title      │                  │
+│  └──────────────┘              │ - completed  │                  │
+│                                 └──────────────┘                  │
+└──────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Phase I Completion Checklist
+## Key Security Patterns
 
-### Planning (Current Phase)
-- [x] Feature specification created (spec.md)
-- [x] Implementation plan created (plan.md)
-- [x] Research completed (research.md)
-- [x] Data model defined (data-model.md)
-- [x] Quickstart guide created (quickstart.md)
-- [x] Agent context updated (copilot-instructions.md)
-- [x] Constitution compliance verified
+### JWT Validation Flow
+```
+1. User signs in → Backend generates JWT with user_id claim
+2. Frontend stores JWT (localStorage or httpOnly cookie)
+3. Frontend attaches JWT to all API requests (Authorization header)
+4. Backend middleware extracts + validates JWT
+5. Backend extracts user_id from token claims
+6. Backend validates user_id in URL matches token user_id
+7. Backend filters all queries by authenticated user_id
+8. Return 401 for invalid/expired token
+9. Return 403 for user_id mismatch
+```
 
-### Implementation (Next Phase)
-- [ ] Task breakdown created (tasks.md via `/sp.tasks`)
-- [ ] All source files generated under `/src`
-- [ ] README.md created with setup instructions
-- [ ] requirements.txt created (if needed)
-- [ ] .gitignore created
-
-### Validation (Final Phase)
-- [ ] Manual testing checklist completed
-- [ ] All acceptance criteria verified
-- [ ] Error handling tested
-- [ ] Documentation reviewed
-- [ ] Phase I frozen and approved
+### Multi-User Isolation Pattern
+```python
+# Example service layer pattern
+def get_user_tasks(db: Session, user_id: str, token_user_id: str):
+    # Validate ownership
+    if user_id != token_user_id:
+        raise HTTPException(status_code=403, detail="Access forbidden")
+    
+    # Filter by user_id
+    return db.query(Task).filter(Task.user_id == user_id).all()
+```
 
 ---
 
 ## Next Steps
 
-1. **Run `/sp.tasks` command** to generate detailed task breakdown
-2. **Generate implementation** using Claude Code or Gemini CLI from tasks
-3. **Validate implementation** against manual testing checklist
-4. **Document completion** and prepare for Phase II planning
+1. **Execute Phase 0**: Generate `research.md` with all technology decisions
+2. **Execute Phase 1**: Generate `data-model.md`, `contracts/rest-api.md`, `quickstart.md`
+3. **Update Agent Context**: Run update-agent-context.ps1
+4. **Re-check Constitution**: Verify Phase 1 design compliance
+5. **Execute Phase 2**: Run `/sp.tasks` to generate task breakdown
+6. **Report Completion**: Document branch, plan path, and generated artifacts
 
----
-
-**Plan Status**: ✅ COMPLETE  
-**Ready for Task Breakdown**: ✅ YES  
-**Constitution Compliance**: ✅ VERIFIED  
-**Phase**: I - In-Memory Python Console Application  
-**Date**: 2026-01-01
+**Command Ends Here**: Phase II planning complete. Implementation deferred to code generation phase.

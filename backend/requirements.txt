@@ -1,0 +1,20 @@
+# Backend dependencies for Phase II Todo Full-Stack Web Application
+# Python 3.12.4 (EXACT VERSION)
+
+# Web framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# Database
+sqlmodel>=0.0.14
+psycopg2-binary>=2.9.9
+alembic>=1.13.0
+
+# Authentication & Security
+pyjwt>=2.8.0
+bcrypt>=4.1.0
+python-multipart>=0.0.6
+
+# Configuration
+pydantic-settings>=2.1.0
+python-dotenv>=1.0.0
