@@ -103,13 +103,16 @@ export default function TaskForm({ task, onSubmit, onCancel, isLoading }: TaskFo
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto"
+      onClick={onCancel}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-        className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6 overflow-hidden relative"
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900/90 border border-white/10 rounded-2xl shadow-2xl max-w-md w-full p-6 relative my-8 max-h-[90vh] overflow-y-auto"
+        style={{ scrollbarWidth: 'thin', scrollbarColor: '#475569 #1e293b' }}
       >
         {/* Background Gradient Blob */}
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none"></div>

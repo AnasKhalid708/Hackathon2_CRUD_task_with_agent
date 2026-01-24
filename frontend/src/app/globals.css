@@ -53,3 +53,44 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400;
   }
 }
+
+/* Custom Select Dropdown Styles */
+select option {
+  @apply bg-slate-900 text-slate-300 py-2;
+}
+
+select option:hover,
+select option:checked {
+  @apply bg-primary text-white;
+}
+
+/* Smooth Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}

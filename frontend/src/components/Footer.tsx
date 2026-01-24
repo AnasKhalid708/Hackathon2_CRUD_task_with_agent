@@ -27,7 +27,7 @@ export function Footer() {
                     <div className="flex items-center gap-1 text-sm text-slate-400">
                         <span>Made with</span>
                         <Heart className="w-4 h-4 text-red-500 fill-red-500 animate-pulse" />
-                        <span>by Your Name</span>
+                        <span>by Syed</span>
                     </div>
                 </div>
             </div>

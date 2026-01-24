@@ -217,12 +217,16 @@ export default function TasksPage() {
               animate={{ opacity: 1, x: 0 }}
               className="flex flex-wrap gap-3 items-center"
             >
-              <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
-                <Filter className="w-4 h-4 text-slate-500 ml-2" />
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800 hover:border-primary/50 hover:bg-slate-900/70 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+              >
+                <Filter className="w-4 h-4 text-slate-500 ml-2 group-hover:text-primary transition-colors" />
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value as FilterType)}
-                  className="bg-transparent border-none text-sm text-slate-300 focus:ring-0 cursor-pointer py-1.5 pr-8 pl-2"
+                  className="bg-transparent border-none text-sm text-slate-300 focus:ring-0 cursor-pointer py-1.5 pr-8 pl-2 hover:text-white transition-colors"
                 >
                   <option value="all">All Tasks</option>
                   <option value="incomplete">Incomplete</option>
@@ -231,14 +235,25 @@ export default function TasksPage() {
                   <option value="upcoming">Due Soon</option>
                   <option value="no-deadline">No Deadline</option>
                 </select>
-              </div>
+                {filter !== 'all' && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50"
+                  />
+                )}
+              </motion.div>
 
-              <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
-                <ArrowUpDown className="w-4 h-4 text-slate-500 ml-2" />
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="relative flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800 hover:border-primary/50 hover:bg-slate-900/70 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10"
+              >
+                <ArrowUpDown className="w-4 h-4 text-slate-500 ml-2 group-hover:text-primary transition-colors" />
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value as SortType)}
-                  className="bg-transparent border-none text-sm text-slate-300 focus:ring-0 cursor-pointer py-1.5 pr-8 pl-2"
+                  className="bg-transparent border-none text-sm text-slate-300 focus:ring-0 cursor-pointer py-1.5 pr-8 pl-2 hover:text-white transition-colors"
                 >
                   <option value="created_desc">Newest</option>
                   <option value="created_asc">Oldest</option>
@@ -248,15 +263,32 @@ export default function TasksPage() {
                   <option value="deadline_asc">Deadline (Earliest)</option>
                   <option value="deadline_desc">Deadline (Latest)</option>
                 </select>
-              </div>
+                {sort !== 'created_desc' && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50"
+                  />
+                )}
+              </motion.div>
 
-              <Button
-                onClick={() => setShowForm(true)}
-                className="gap-2 shadow-lg shadow-primary/20"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Plus className="w-4 h-4" />
-                New Task
-              </Button>
+                <Button
+                  onClick={() => setShowForm(true)}
+                  className="gap-2 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                >
+                  <motion.div
+                    animate={{ rotate: showForm ? 45 : 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.div>
+                  New Task
+                </Button>
+              </motion.div>
             </motion.div>
           </div>
 
