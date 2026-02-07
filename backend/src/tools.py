@@ -8,20 +8,14 @@ from google.adk.tools import ToolContext
 
 logger = logging.getLogger(__name__)
 
-# Module-level variable to store user_id for the current request
-_request_user_id: Optional[str] = None
 
-
-def _get_user_id(tool_context: ToolContext = None) -> Optional[str]:
-    """Get user_id from ToolContext state or fallback to module variable."""
-    # Try ToolContext first (proper ADK way)
+def _get_user_id(tool_context: ToolContext) -> Optional[str]:
+    """Get user_id from ToolContext state."""
     if tool_context and hasattr(tool_context, 'state'):
         user_id = tool_context.state.get('user_id')
         if user_id:
             return user_id
-    
-    # Fallback to module-level variable (simple approach)
-    return _request_user_id
+    return None
 
 
 def create_task(
@@ -86,17 +80,13 @@ def create_task(
 
 
 def get_all_tasks(
-    tool_context: ToolContext, 
-    filter_type: str = "all"
+    tool_context: ToolContext
 ) -> Dict[str, Any]:
     """
     Retrieve all tasks for the current user.
     
-    Args:
-        filter_type: Filter type - "all", "complete", "incomplete", or "overdue" (default: "all")
-    
     Returns:
-        List of tasks with their details (id, title, description, completed, deadline)
+        List of all tasks with their details (id, title, description, completed, deadline)
     """
     try:
         # Get user_id from tool context state
@@ -104,19 +94,10 @@ def get_all_tasks(
         if not user_id:
             return {"error": "User context not available"}
         
-        logger.info(f"Retrieving tasks for user {user_id}, filter: {filter_type}")
+        logger.info(f"Retrieving all tasks for user {user_id}")
         
         with Session(engine) as db:
             query = select(Task).where(Task.user_id == user_id)
-            
-            now = datetime.utcnow()
-            if filter_type == "complete":
-                query = query.where(Task.completed == True)
-            elif filter_type == "incomplete":
-                query = query.where(Task.completed == False)
-            elif filter_type == "overdue":
-                query = query.where(Task.deadline < now, Task.completed == False)
-            
             query = query.order_by(Task.created_at.desc())
             tasks = db.exec(query).all()
             
@@ -141,109 +122,6 @@ def get_all_tasks(
     except Exception as e:
         logger.error(f"Error retrieving tasks: {str(e)}")
         return {"error": f"Failed to retrieve tasks: {str(e)}"}
-
-
-def get_task_by_id(
-    tool_context: ToolContext, 
-    task_id: str
-) -> Dict[str, Any]:
-    """
-    Get a specific task by its ID.
-    
-    Args:
-        task_id: The UUID of the task to retrieve
-    
-    Returns:
-        Task details if found, error if not found or access denied
-    """
-    try:
-        # Get user_id from tool context state
-        user_id = _get_user_id(tool_context)
-        if not user_id:
-            return {"error": "User context not available"}
-        
-        logger.info(f"Retrieving task {task_id} for user {user_id}")
-        
-        with Session(engine) as db:
-            task = db.get(Task, task_id)
-            if not task or str(task.user_id) != str(user_id):
-                return {"error": "Task not found"}
-            
-            return {
-                "success": True,
-                "task": {
-                    "id": str(task.id),
-                    "title": task.title,
-                    "description": task.description,
-                    "completed": task.completed,
-                    "deadline": task.deadline.isoformat() if task.deadline else None,
-                    "created_at": task.created_at.isoformat(),
-                    "updated_at": task.updated_at.isoformat()
-                }
-            }
-            
-    except Exception as e:
-        logger.error(f"Error retrieving task: {str(e)}")
-        return {"error": f"Failed to retrieve task: {str(e)}"}
-
-
-def get_task_by_title(
-    tool_context: ToolContext, 
-    title: str
-) -> Dict[str, Any]:
-    """
-    Find tasks by title (case-insensitive partial match).
-    
-    Args:
-        title: The title or partial title to search for
-    
-    Returns:
-        List of matching tasks
-    """
-    try:
-        # Get user_id from tool context state
-        user_id = _get_user_id(tool_context)
-        if not user_id:
-            return {"error": "User context not available"}
-        
-        logger.info(f"Searching tasks by title '{title}' for user {user_id}")
-        
-        with Session(engine) as db:
-            query = select(Task).where(
-                Task.user_id == user_id,
-                Task.title.ilike(f"%{title}%")
-            )
-            tasks = db.exec(query).all()
-            
-            if not tasks:
-                return {
-                    "success": True,
-                    "count": 0,
-                    "tasks": [],
-                    "message": f"No tasks found with title containing '{title}'"
-                }
-            
-            task_list = [
-                {
-                    "id": str(task.id),
-                    "title": task.title,
-                    "description": task.description,
-                    "completed": task.completed,
-                    "deadline": task.deadline.isoformat() if task.deadline else None,
-                    "created_at": task.created_at.isoformat()
-                }
-                for task in tasks
-            ]
-            
-            return {
-                "success": True,
-                "count": len(task_list),
-                "tasks": task_list
-            }
-            
-    except Exception as e:
-        logger.error(f"Error searching tasks: {str(e)}")
-        return {"error": f"Failed to search tasks: {str(e)}"}
 
 
 def update_task(

@@ -60,8 +60,8 @@ async def chat_with_agent(
         logger.info(f"Processing agent request for user {request.user_id}")
         logger.info(f"Message: {request.message}")
         
-        # Import agent and conversation storage
-        from src.agent import task_agent, user_conversations
+        # Import agent function and conversation storage
+        from src.agent import run_agent, user_conversations
         
         # Get or initialize conversation history for this user
         if request.user_id not in user_conversations:
@@ -73,26 +73,12 @@ async def chat_with_agent(
             "content": request.message
         })
         
-        # Build conversation context
-        context_parts = []
+        # Build conversation context (optional - agent handles this internally)
+        # For now, just pass the current message
+        message_to_agent = request.message
         
-        # Add recent conversation history (last 10 messages)
-        recent_history = user_conversations[request.user_id][-10:]
-        for msg in recent_history[:-1]:  # Exclude the current message
-            context_parts.append(f"{msg['role'].upper()}: {msg['content']}")
-        
-        # Add current message
-        context_parts.append(f"USER: {request.message}")
-        
-        full_context = "\n\n".join(context_parts) if context_parts[:-1] else request.message
-        
-        logger.info(f"Sending context to agent: {full_context[:200]}...")
-        
-        # Import agent function
-        from src.agent import run_agent
-        
-        # Run agent with user context
-        result = run_agent(full_context, request.user_id)
+        # Run agent with user context - ADD AWAIT HERE
+        result = await run_agent(message_to_agent, request.user_id)
         
         response_text = result.get("text", "")
         success = result.get("success", False)
