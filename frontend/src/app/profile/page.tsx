@@ -3,18 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useChatPreference } from '@/context/ChatPreferenceContext';
 import { api, getErrorMessage } from '@/lib/api';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card';
-import { User, Mail, Lock, ShieldAlert, ArrowLeft, LogOut, Save, Trash2, MessageSquare, Mic } from 'lucide-react';
+import { User, Mail, Lock, ShieldAlert, ArrowLeft, LogOut, Save, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
-  const { chatType, setChatType } = useChatPreference();
   const router = useRouter();
 
   const [email, setEmail] = useState('');
