@@ -1,0 +1,53 @@
+TaskMaster AI has been deployed to your Kubernetes cluster!
+
+Release name: {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+
+To access the application:
+
+1. Check the status of your pods:
+   kubectl get pods -n {{ .Release.Namespace }}
+
+2. Wait for all pods to be in Running state:
+   kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ .Release.Namespace }} --timeout=120s
+
+3. Get the frontend service URL:
+   {{- if eq .Values.frontend.service.type "LoadBalancer" }}
+   
+   The application is exposed via LoadBalancer.
+   On Docker Desktop, you can access it at:
+   
+   http://localhost:{{ .Values.frontend.service.port }}
+   
+   {{- else if eq .Values.frontend.service.type "NodePort" }}
+   
+   export NODE_PORT=$(kubectl get svc {{ include "taskmaster.fullname" . }}-frontend -n {{ .Release.Namespace }} -o jsonpath='{.spec.ports[0].nodePort}')
+   echo "Access the application at http://localhost:$NODE_PORT"
+   
+   {{- else }}
+   
+   kubectl port-forward svc/{{ include "taskmaster.fullname" . }}-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
+   Then access at http://localhost:{{ .Values.frontend.service.port }}
+   
+   {{- end }}
+
+4. View backend logs:
+   kubectl logs -f deployment/{{ include "taskmaster.fullname" . }}-backend -n {{ .Release.Namespace }}
+
+5. View frontend logs:
+   kubectl logs -f deployment/{{ include "taskmaster.fullname" . }}-frontend -n {{ .Release.Namespace }}
+
+To check the health of your services:
+   kubectl get services -n {{ .Release.Namespace }}
+
+To upgrade this release:
+   helm upgrade {{ .Release.Name }} ./helm-charts/taskmaster -n {{ .Release.Namespace }}
+
+To uninstall this release:
+   helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
+
+For troubleshooting:
+   kubectl describe pods -n {{ .Release.Namespace }}
+   kubectl get events -n {{ .Release.Namespace }} --sort-by='.lastTimestamp'
+
+Enjoy using TaskMaster AI! 🚀

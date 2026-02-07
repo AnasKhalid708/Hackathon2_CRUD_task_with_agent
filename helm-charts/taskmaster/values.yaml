@@ -1,0 +1,90 @@
+# Default values for TaskMaster Helm chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Backend service configuration
+backend:
+  replicaCount: 1
+  image:
+    repository: taskmaster-backend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# Frontend service configuration
+frontend:
+  replicaCount: 1
+  image:
+    repository: taskmaster-frontend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: LoadBalancer
+    port: 3000
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  probes:
+    liveness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+    readiness:
+      enabled: true
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+# ConfigMap data (non-sensitive configuration)
+config:
+  appEnv: production
+  backendServiceUrl: http://localhost:8000
+
+# Secret reference (create separately with kubectl)
+# DO NOT put actual secrets in values.yaml
+secret:
+  name: taskmaster-secret
+  # Keys expected in the secret:
+  # - database-url
+  # - openai-api-key
+  # - jwt-secret
+
+# Update strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0

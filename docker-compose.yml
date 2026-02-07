@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskmaster-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Database connection (from host environment or .env)
+      - DATABASE_URL=${DATABASE_URL}
+      # AI Service API key
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # JWT Secret for authentication
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-default-secret-key-change-in-production}
+      # Application environment
+      - APP_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - taskmaster-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskmaster-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # Backend API URL (internal container communication)
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 45s
+    restart: unless-stopped
+    networks:
+      - taskmaster-network
+
+networks:
+  taskmaster-network:
+    driver: bridge

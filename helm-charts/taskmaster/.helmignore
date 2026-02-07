@@ -1,0 +1,11 @@
+# Helm ignore patterns
+.git/
+.gitignore
+*.swp
+*.tmp
+*.bak
+*.orig
+.DS_Store
+Thumbs.db
+*.md
+.helmignore
