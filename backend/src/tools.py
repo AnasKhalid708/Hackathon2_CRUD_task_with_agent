@@ -23,6 +23,7 @@ def create_task(
     title: str, 
     description: str = "", 
     deadline: Optional[str] = None,
+    recurrence: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Create a new task for the current user.
@@ -31,9 +32,10 @@ def create_task(
         title: The task title (required, max 200 characters)
         description: Task description (optional, max 1000 characters)
         deadline: Deadline in ISO format like "2026-01-25T12:00:00" (optional)
+        recurrence: Recurrence pattern like "daily", "weekly", "monthly", "every_tuesday", "every_week" (optional)
     
     Returns:
-        Task details with id, title, description, completed status, deadline, and creation time
+        Task details with id, title, description, completed status, deadline, recurrence, and creation time
     """
     try:
         # Get user_id from tool context state
@@ -41,7 +43,7 @@ def create_task(
         if not user_id:
             return {"error": "User context not available"}
         
-        logger.info(f"Creating task for user {user_id}: {title}")
+        logger.info(f"Creating task for user {user_id}: {title} (recurrence: {recurrence})")
         
         with Session(engine) as db:
             deadline_dt = None
@@ -55,7 +57,8 @@ def create_task(
                 user_id=user_id,
                 title=title[:200],
                 description=description[:1000] if description else "",
-                deadline=deadline_dt
+                deadline=deadline_dt,
+                recurrence=recurrence[:100] if recurrence else None
             )
             
             db.add(task)
@@ -64,13 +67,14 @@ def create_task(
             
             return {
                 "success": True,
-                "message": f"Task '{title}' created successfully!",
+                "message": f"Task '{title}' created successfully!" + (" (Recurring: {})".format(recurrence) if recurrence else ""),
                 "task": {
                     "id": str(task.id),
                     "title": task.title,
                     "description": task.description,
                     "completed": task.completed,
                     "deadline": task.deadline.isoformat() if task.deadline else None,
+                    "recurrence": task.recurrence,
                     "created_at": task.created_at.isoformat()
                 }
             }
@@ -108,6 +112,7 @@ def get_all_tasks(
                     "description": task.description,
                     "completed": task.completed,
                     "deadline": task.deadline.isoformat() if task.deadline else None,
+                    "recurrence": task.recurrence,
                     "created_at": task.created_at.isoformat()
                 }
                 for task in tasks
@@ -130,7 +135,8 @@ def update_task(
     title: Optional[str] = None,
     description: Optional[str] = None,
     completed: Optional[bool] = None,
-    deadline: Optional[str] = None
+    deadline: Optional[str] = None,
+    recurrence: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Update an existing task.
@@ -141,6 +147,7 @@ def update_task(
         description: New description (optional)
         completed: Mark as complete (True) or incomplete (False) (optional)
         deadline: New deadline in ISO format (optional)
+        recurrence: New recurrence pattern like "daily", "weekly", "monthly" (optional)
     
     Returns:
         Updated task details
@@ -170,6 +177,8 @@ def update_task(
                     task.deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
                 except ValueError:
                     return {"error": "Invalid deadline format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"}
+            if recurrence is not None:
+                task.recurrence = recurrence[:100] if recurrence else None
             
             task.updated_at = datetime.utcnow()
             
@@ -186,6 +195,7 @@ def update_task(
                     "description": task.description,
                     "completed": task.completed,
                     "deadline": task.deadline.isoformat() if task.deadline else None,
+                    "recurrence": task.recurrence,
                     "updated_at": task.updated_at.isoformat()
                 }
             }

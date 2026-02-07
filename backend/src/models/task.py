@@ -48,6 +48,13 @@ class Task(SQLModel, table=True):
         description="Task deadline (optional, UTC)"
     )
     
+    recurrence: Optional[str] = Field(
+        default=None,
+        nullable=True,
+        max_length=100,
+        description="Recurrence pattern: 'daily', 'weekly', 'monthly', 'every_tuesday', etc."
+    )
+    
     created_at: datetime = Field(
         default_factory=datetime.utcnow,
         description="Creation timestamp (UTC)"
@@ -83,5 +90,6 @@ class TaskRead(SQLModel):
     description: str
     completed: bool
     deadline: Optional[datetime]
+    recurrence: Optional[str]
     created_at: datetime
     updated_at: datetime
