@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: Agent Status API
+  description: Health check and status monitoring for ADK agent service
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.production.com
+    description: Production (TBD)
+
+paths:
+  /api/agent/status:
+    get:
+      summary: Check agent service status
+      description: |
+        Returns the current status of the ADK agent service, including 
+        initialization state, model information, and available tools count.
+        
+        This endpoint does not require authentication and can be used for 
+        health checks and monitoring.
+      operationId: getAgentStatus
+      tags:
+        - Agent
+      responses:
+        '200':
+          description: Agent status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentStatusResponse'
+              examples:
+                agentActive:
+                  summary: Agent is active
+                  value:
+                    status: "active"
+                    agent_name: "TaskMasterAgent"
+                    model: "gemini-2.0-flash-exp"
+                    tools_available: 4
+                agentError:
+                  summary: Agent initialization error
+                  value:
+                    status: "error"
+                    error: "GOOGLE_API_KEY not configured"
+
+components:
+  schemas:
+    AgentStatusResponse:
+      type: object
+      description: Agent service status information
+      oneOf:
+        - $ref: '#/components/schemas/AgentStatusActive'
+        - $ref: '#/components/schemas/AgentStatusError'
+
+    AgentStatusActive:
+      type: object
+      required:
+        - status
+        - agent_name
+        - model
+        - tools_available
+      properties:
+        status:
+          type: string
+          enum: [active]
+          description: Agent is running
+          example: "active"
+        agent_name:
+          type: string
+          description: Name of the agent
+          example: "TaskMasterAgent"
+        model:
+          type: string
+          description: AI model being used
+          example: "gemini-2.0-flash-exp"
+        tools_available:
+          type: integer
+          minimum: 0
+          description: Number of tools registered with agent
+          example: 4
+
+    AgentStatusError:
+      type: object
+      required:
+        - status
+        - error
+      properties:
+        status:
+          type: string
+          enum: [error]
+          description: Agent encountered an error
+          example: "error"
+        error:
+          type: string
+          description: Error message describing the issue
+          example: "GOOGLE_API_KEY not configured in environment"

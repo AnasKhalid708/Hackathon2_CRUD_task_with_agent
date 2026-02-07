@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: Agent Chat API
+  description: Natural language task management through ADK agent
+  version: 1.0.0
+  contact:
+    name: Phase III - AI Agent Integration
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.production.com
+    description: Production (TBD)
+
+paths:
+  /api/agent/chat:
+    post:
+      summary: Chat with task management agent
+      description: |
+        Send a natural language message to the task management agent. The agent 
+        interprets your intent and performs CRUD operations on your tasks.
+        
+        Requires JWT authentication. The authenticated user_id must match the 
+        request body user_id.
+      operationId: chatWithAgent
+      tags:
+        - Agent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentRequest'
+            examples:
+              createTask:
+                summary: Create a new task
+                value:
+                  message: "Create a task to buy groceries tomorrow"
+                  user_id: "user_123"
+                  chat_history: []
+              retrieveTasks:
+                summary: Retrieve tasks
+                value:
+                  message: "Show me all my incomplete tasks"
+                  user_id: "user_123"
+                  chat_history: []
+              updateTask:
+                summary: Update task status
+                value:
+                  message: "Mark the groceries task as complete"
+                  user_id: "user_123"
+                  chat_history:
+                    - role: "user"
+                      content: "Create a task to buy groceries"
+                    - role: "agent"
+                      content: "Task created successfully!"
+              deleteTask:
+                summary: Delete a task
+                value:
+                  message: "Delete the task about groceries"
+                  user_id: "user_123"
+                  chat_history: []
+      responses:
+        '200':
+          description: Agent processed request successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
+              examples:
+                taskCreated:
+                  summary: Task creation success
+                  value:
+                    response: "I've created a task titled 'buy groceries' with a deadline for tomorrow. The task has been added to your list successfully!"
+                    success: true
+                    tool_calls:
+                      - name: "create_task"
+                        args:
+                          user_id: "user_123"
+                          title: "buy groceries"
+                          deadline: "2026-01-25T23:59:59"
+                tasksRetrieved:
+                  summary: Task retrieval success
+                  value:
+                    response: "You have 3 incomplete tasks: 1. Buy groceries (due tomorrow), 2. Finish report (due Friday), 3. Call dentist (no deadline)"
+                    success: true
+                    tool_calls:
+                      - name: "retrieve_tasks"
+                        args:
+                          user_id: "user_123"
+                          filter_type: "incomplete"
+                clarificationNeeded:
+                  summary: Agent needs clarification
+                  value:
+                    response: "I found multiple tasks with 'groceries' in the title. Which one would you like to update? 1. Buy groceries at Walmart 2. Return groceries from yesterday"
+                    success: true
+                    tool_calls: []
+        '400':
+          description: Invalid request format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: User ID mismatch or unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Agent processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /api/auth/signin endpoint
+
+  schemas:
+    AgentRequest:
+      type: object
+      required:
+        - message
+        - user_id
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: Natural language message to the agent
+          example: "Create a task to buy groceries tomorrow"
+        user_id:
+          type: string
+          description: Authenticated user ID (must match JWT token)
+          example: "user_123"
+        chat_history:
+          type: array
+          maxItems: 20
+          description: Optional conversation history for context
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          default: []
+
+    ChatMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, agent, system]
+          description: Message sender role
+          example: "user"
+        content:
+          type: string
+          maxLength: 5000
+          description: Message text content
+          example: "Show me my tasks"
+
+    AgentResponse:
+      type: object
+      required:
+        - response
+        - success
+      properties:
+        response:
+          type: string
+          description: Agent's natural language response
+          example: "Task created successfully!"
+        success:
+          type: boolean
+          description: Whether the operation succeeded
+          example: true
+        tool_calls:
+          type: array
+          description: Tools invoked during processing (optional, for debugging)
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Tool function name
+                example: "create_task"
+              args:
+                type: object
+                description: Arguments passed to tool
+                additionalProperties: true
+                example:
+                  user_id: "user_123"
+                  title: "buy groceries"
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Access denied: user_id mismatch"

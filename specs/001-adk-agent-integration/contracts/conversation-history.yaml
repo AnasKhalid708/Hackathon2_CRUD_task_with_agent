@@ -1,0 +1,107 @@
+openapi: 3.0.3
+info:
+  title: Conversation History API
+  description: Manage agent conversation history for users
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Local development
+  - url: https://api.production.com
+    description: Production (TBD)
+
+paths:
+  /api/agent/clear-history:
+    post:
+      summary: Clear conversation history
+      description: |
+        Clears the conversation history for the authenticated user. This removes 
+        all stored chat messages and resets the agent's context for future 
+        conversations.
+        
+        Requires JWT authentication. The user_id must match the JWT token.
+      operationId: clearConversationHistory
+      tags:
+        - Agent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClearHistoryRequest'
+            examples:
+              clearHistory:
+                summary: Clear user's conversation history
+                value:
+                  user_id: "user_123"
+      responses:
+        '200':
+          description: History cleared successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClearHistoryResponse'
+              examples:
+                success:
+                  summary: History cleared
+                  value:
+                    success: true
+                    message: "Conversation history cleared"
+        '403':
+          description: User ID mismatch or unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from /api/auth/signin endpoint
+
+  schemas:
+    ClearHistoryRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          description: User ID to clear history for (must match JWT token)
+          example: "user_123"
+
+    ClearHistoryResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether operation succeeded
+          example: true
+        message:
+          type: string
+          description: Confirmation message
+          example: "Conversation history cleared"
+
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Access denied: user_id mismatch"

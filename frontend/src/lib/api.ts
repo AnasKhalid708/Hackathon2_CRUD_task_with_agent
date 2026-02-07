@@ -107,6 +107,23 @@ class ApiClient {
   async deleteAccount(userId: string, password: string): Promise<void> {
     await this.client.delete(`/api/users/${userId}`, { data: { password } });
   }
+
+  async sendChatMessage(
+    message: string,
+    userId: string,
+    chatHistory: Array<{ role: string; content: string }> = []
+  ): Promise<{ response: string; success: boolean; tool_calls?: any[] }> {
+    const response = await this.client.post('/api/agent/chat', {
+      message,
+      user_id: userId,
+      chat_history: chatHistory,
+    });
+    return response.data;
+  }
+
+  async clearChatHistory(userId: string): Promise<void> {
+    await this.client.post('/api/agent/clear-history', { user_id: userId });
+  }
 }
 
 export const api = new ApiClient();

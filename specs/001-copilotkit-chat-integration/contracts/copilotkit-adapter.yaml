@@ -1,0 +1,292 @@
+openapi: 3.0.3
+info:
+  title: CopilotKit Chat Adapter API
+  description: |
+    API contract for CopilotKit integration with ADK agent backend.
+    This adapter bridges CopilotKit's frontend chat interface with the existing
+    /api/agent/chat endpoint, providing automatic user context injection and
+    response format transformation.
+  version: 1.0.0
+  contact:
+    name: Evolution of Todo Development Team
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.production.example.com
+    description: Production server (placeholder)
+
+tags:
+  - name: CopilotKit Adapter
+    description: CopilotKit integration endpoints
+
+paths:
+  /api/copilotkit/adapter:
+    post:
+      tags:
+        - CopilotKit Adapter
+      summary: Send message to ADK agent via CopilotKit adapter
+      description: |
+        Receives messages from CopilotKit frontend, injects user context,
+        forwards to /api/agent/chat, and transforms response to CopilotKit format.
+        
+        This endpoint acts as a bridge and does NOT store conversations -
+        all persistence is handled client-side via sessionStorage.
+      operationId: copilotkit_chat
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CopilotKitRequest'
+            examples:
+              simple_query:
+                summary: Simple user query
+                value:
+                  message: "Show me my incomplete tasks"
+                  metadata:
+                    user_id: "user_abc123"
+                    session_id: "session_xyz789"
+              with_history:
+                summary: Message with conversation history
+                value:
+                  message: "What about the overdue ones?"
+                  chat_history:
+                    - role: "user"
+                      content: "Show me my incomplete tasks"
+                    - role: "agent"
+                      content: "You have 3 incomplete tasks: Project A, Task B, Feature C"
+                  metadata:
+                    user_id: "user_abc123"
+                    session_id: "session_xyz789"
+      responses:
+        '200':
+          description: Successful agent response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CopilotKitResponse'
+              examples:
+                text_response:
+                  summary: Text-only agent response
+                  value:
+                    message: "You have 3 incomplete tasks: Project A (due Jan 25), Task B (due Jan 26), Feature C (no deadline)."
+                    success: true
+                    timestamp: "2026-01-24T15:00:00.000Z"
+                with_tool_calls:
+                  summary: Response with tool invocations
+                  value:
+                    message: "I've created a new task 'Review documents' with deadline tomorrow."
+                    success: true
+                    timestamp: "2026-01-24T15:00:00.000Z"
+                    tool_calls:
+                      - name: "create_task"
+                        args:
+                          title: "Review documents"
+                          deadline: "2026-01-25"
+                          priority: "high"
+                        result:
+                          id: "task_12345"
+                          status: "created"
+        '400':
+          description: Invalid request (empty message, missing user_id)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Validation error"
+                detail: "Message cannot be empty"
+                success: false
+        '401':
+          description: Unauthorized (invalid or missing JWT token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Unauthorized"
+                detail: "Invalid authentication token"
+                success: false
+        '403':
+          description: Forbidden (user_id mismatch with token)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Access denied"
+                detail: "user_id mismatch with authentication token"
+                success: false
+        '500':
+          description: Internal server error (agent failure)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "Agent error"
+                detail: "The AI assistant encountered an error processing your request"
+                success: false
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from /api/auth/signin endpoint.
+        Token is stored in localStorage and automatically injected by frontend.
+
+  schemas:
+    CopilotKitRequest:
+      type: object
+      required:
+        - message
+        - metadata
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: User's message text
+          example: "Show me my incomplete tasks"
+        chat_history:
+          type: array
+          description: Previous conversation messages for context (optional)
+          items:
+            $ref: '#/components/schemas/ChatHistoryMessage'
+          maxItems: 50
+        metadata:
+          type: object
+          required:
+            - user_id
+          properties:
+            user_id:
+              type: string
+              description: Authenticated user's ID (auto-injected by frontend)
+              example: "user_abc123"
+            session_id:
+              type: string
+              description: Current browser session identifier (optional)
+              example: "session_xyz789"
+          additionalProperties: true
+
+    ChatHistoryMessage:
+      type: object
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          enum: [user, agent]
+          description: Message sender type
+        content:
+          type: string
+          description: Message text content
+          example: "Show me my tasks"
+
+    CopilotKitResponse:
+      type: object
+      required:
+        - message
+        - success
+        - timestamp
+      properties:
+        message:
+          type: string
+          description: Agent's response text
+          example: "You have 3 incomplete tasks: Project A, Task B, Feature C."
+        success:
+          type: boolean
+          description: Whether the request was processed successfully
+          example: true
+        timestamp:
+          type: string
+          format: date-time
+          description: When the response was generated
+          example: "2026-01-24T15:00:00.000Z"
+        tool_calls:
+          type: array
+          description: Tools invoked by the agent (optional)
+          items:
+            $ref: '#/components/schemas/ToolCall'
+
+    ToolCall:
+      type: object
+      required:
+        - name
+        - args
+      properties:
+        name:
+          type: string
+          description: Name of the tool invoked
+          example: "create_task"
+        args:
+          type: object
+          description: Arguments passed to the tool
+          additionalProperties: true
+          example:
+            title: "Review documents"
+            deadline: "2026-01-25"
+        result:
+          type: object
+          description: Tool execution result (optional)
+          additionalProperties: true
+          example:
+            id: "task_12345"
+            status: "created"
+        status:
+          type: string
+          enum: [pending, completed, error]
+          description: Tool execution status
+          example: "completed"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - success
+      properties:
+        error:
+          type: string
+          description: Error type or category
+          example: "Validation error"
+        detail:
+          type: string
+          description: Detailed error message
+          example: "Message cannot be empty"
+        success:
+          type: boolean
+          description: Always false for errors
+          example: false
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2026-01-24T15:00:00.000Z"
+
+  examples:
+    SimpleQuery:
+      summary: Simple user query
+      value:
+        message: "Show me my incomplete tasks"
+        metadata:
+          user_id: "user_abc123"
+
+    ComplexQuery:
+      summary: Query with history and context
+      value:
+        message: "Create a new task for tomorrow"
+        chat_history:
+          - role: "user"
+            content: "Show me my tasks"
+          - role: "agent"
+            content: "You have 3 tasks..."
+        metadata:
+          user_id: "user_abc123"
+          session_id: "session_xyz789"

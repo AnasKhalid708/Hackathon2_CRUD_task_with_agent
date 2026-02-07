@@ -2,10 +2,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.routes import auth_router, tasks_router, users_router
+from src.routes.adk_agent import router as agent_router
 
 app = FastAPI(
     title="Todo API",
-    description="Phase II Todo Full-Stack Web Application API",
+    description="Phase II Todo Full-Stack Web Application API with AI Agent",
     version="2.1.0"
 )
 
@@ -20,6 +21,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(tasks_router)
 app.include_router(users_router)
+app.include_router(agent_router)
 
 
 @app.on_event("startup")

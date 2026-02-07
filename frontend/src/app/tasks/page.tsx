@@ -7,6 +7,7 @@ import { Task, TaskCreate, TaskUpdate, FilterType, SortType } from '@/types/task
 import ProtectedRoute from '@/components/ProtectedRoute';
 import TaskList from '@/components/TaskList';
 import TaskForm from '@/components/TaskForm';
+import { CopilotChat } from '@/components/CopilotChat';
 import { checkRecurringTaskNotifications, requestNotificationPermission } from '@/lib/notifications';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -313,6 +314,8 @@ export default function TasksPage() {
             )}
           </AnimatePresence>
         </main>
+
+        <CopilotChat />
       </div>
     </ProtectedRoute>
   );
