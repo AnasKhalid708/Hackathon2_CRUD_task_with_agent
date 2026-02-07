@@ -365,15 +365,14 @@ function TaskPageContent({
             )}
           </AnimatePresence>
         </main>
-
-        {/* AI Chat Assistant */}
-        <aside className="fixed bottom-4 right-4 w-96 h-[32rem] z-50 shadow-2xl rounded-xl overflow-hidden">
-          <CustomChatbox 
-            userId={user?.id || ''} 
-            apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}
-          />
-        </aside>
       </div>
+
+      {/* AI Chat Assistant - Floating Button & Popup */}
+      <CustomChatbox 
+        userId={user?.id || ''} 
+        apiUrl={process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}
+      />
+    </ProtectedRoute>
   );
 }
 
