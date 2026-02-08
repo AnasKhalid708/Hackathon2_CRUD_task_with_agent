@@ -8,7 +8,7 @@ from src.services.task_service import TaskService
 from src.cli.display import Display
 from src.cli.sort_manager import SortManager
 from src.cli.command_handler import CommandHandler
-
+  
 
 def main():
     """
