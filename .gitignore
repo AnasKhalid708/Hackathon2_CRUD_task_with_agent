@@ -46,3 +46,4 @@ Thumbs.db
 *.log
 
 !frontend/src/lib/
+md_files/
